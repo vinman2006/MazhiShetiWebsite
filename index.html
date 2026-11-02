@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mazhi Sheti — Understand Your Soil. Grow Smarter.</title>
+<meta name="description" content="Mazhi Sheti is a smart soil sensor and farm companion: real-time soil analysis, crop insights and personalised recommendations for a healthier, more productive farm.">
+<meta name="theme-color" content="#0f5a32">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/figtree-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/figtree-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- ============================ HERO ============================ -->
+<section class="hero" id="home">
+
+  <!-- background photo + warm scrims -->
+  <div class="hero__bg" aria-hidden="true">
+    <div class="hero__photo"></div>
+    <div class="hero__wash"></div>
+    <div class="hero__sun"></div>
+    <div class="hero__glow"></div>
+  </div>
+
+  <div class="hero__stage">
+
+    <!-- ---------------- navigation ---------------- -->
+    <header class="nav">
+      <a class="brand" href="#home" aria-label="Mazhi Sheti — home">
+        <span class="brand__mark">
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <path d="M22.4 30.2C13.9 30.6 7.6 25 6.6 15.1c9.7-1.1 17.2 3.9 18.6 13.4" fill="#8dc63f"/>
+            <path d="M25.4 31.5C24 19.8 30.7 10.4 42.6 7.6c1.6 11.9-5.9 22.1-17.2 23.9Z" fill="#14532d"/>
+            <path d="M39.6 11.4c-6.2 3.1-10.3 8.4-12.4 15.6" fill="none" stroke="#f2efdc" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M13.1 18.6c3.4 1.9 6 4.8 7.6 8.6" fill="none" stroke="#f2efdc" stroke-width="1.4" stroke-linecap="round" opacity=".85"/>
+            <path d="M23.7 44.5V28.6" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand__name">Mazhi Sheti</span>
+      </a>
+
+      <nav class="nav__links" aria-label="Primary">
+        <a href="#home" class="is-active">Home</a>
+        <a href="#product">Product</a>
+        <a href="#how">How it Works</a>
+        <a href="#features">Features</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#about">About</a>
+      </nav>
+
+      <div class="nav__actions">
+        <a class="btn btn--ghost" href="#signin">Sign In</a>
+        <a class="btn btn--solid" href="#pricing">Get Started
+          <svg class="ico-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+
+      <button class="nav__burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </header>
+
+    <!-- ---------------- hero copy ---------------- -->
+    <div class="copy">
+      <p class="pill">
+        <svg class="pill__leaf" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M15.2 19.9C9.4 20.2 5.1 16.4 4.4 9.6c6.7-.8 11.8 2.6 12.8 9.1" fill="#5b9a2f"/>
+          <path d="M17.3 20.8C16.3 12.8 20.9 6.4 29 4.5c1.1 8.2-4 15.2-11.7 16.3Z" fill="#14532d"/>
+          <path d="M26.9 7.1c-4.2 2.1-7 5.7-8.5 10.6" fill="none" stroke="#f2efdc" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M16.1 29.7V19.2" fill="none" stroke="#14532d" stroke-width="1.9" stroke-linecap="round"/>
+        </svg>
+        <span>Smart Soil <i>•</i> Better Crops <i>•</i> Brighter Tomorrow</span>
+      </p>
+
+      <h1 class="title">
+        <span class="title__line">Understand</span>
+        <span class="title__line">Your Soil.</span>
+        <span class="title__line title__line--accent">Grow Smarter.</span>
+      </h1>
+
+      <p class="lede">Real-time soil analysis, crop insights and personalized recommendations — all in one place for a healthier and more productive farm.</p>
+
+      <div class="actions">
+        <a class="btn btn--primary" href="#pricing">Get Started
+          <svg class="ico-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <a class="btn btn--demo" href="#how">
+          <span class="btn__play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6.6v10.8L18 12 9 6.6Z" fill="currentColor"/></svg></span>
+          Watch Demo
+        </a>
+      </div>
+
+      <ul class="perks">
+        <li class="perk">
+          <svg class="perk__ico" viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M13.6 21.2c-3.9.2-6.8-2.3-7.2-6.7 4.4-.5 7.8 1.7 8.5 6Z" fill="#3f8f3a"/>
+            <path d="M15.1 21.8c-.6-5.2 2.4-9.4 7.7-10.6.7 5.3-2.7 9.8-7.7 10.6Z" fill="#3f8f3a"/>
+            <path d="M15.2 30.2V20.6" fill="none" stroke="#2f7b31" stroke-width="1.9" stroke-linecap="round"/>
+            <path d="M6.9 26.4h16.4" fill="none" stroke="#2f7b31" stroke-width="1.9" stroke-linecap="round"/>
+          </svg>
+          <span>Real-time<br>Soil Data</span>
+        </li>
+        <li class="perk">
+          <svg class="perk__ico" viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M8.4 27V19.4c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8V27Z" fill="#166b39"/>
+            <path d="M13.6 27v-9.5c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8V27Z" fill="#166b39"/>
+            <path d="M18.8 27v-6.2c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8V27Z" fill="#166b39"/>
+            <path d="M24 27V13.6" fill="none" stroke="#166b39" stroke-width="3.4" stroke-linecap="round"/>
+            <path d="M22.1 9.9c1.2-1.6 3-2.3 4.9-2.1.2 1.8-.6 3.4-2.2 4.5Z" fill="#4f9c3c"/>
+          </svg>
+          <span>AI-Powered<br>Recommendations</span>
+        </li>
+        <li class="perk">
+          <svg class="perk__ico" viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M20.9 8.4h-8.6c-2 0-3.6 1.6-3.6 3.6v8.5c0 2 1.6 3.6 3.6 3.6h8.6c2 0 3.6-1.6 3.6-3.6v-8.5c0-2-1.6-3.6-3.6-3.6Z" fill="none" stroke="#bcd7b8" stroke-width="1.7"/>
+            <rect x="10.6" y="6.3" width="11.5" height="18.2" rx="3.2" fill="none" stroke="#166b39" stroke-width="1.9"/>
+            <circle cx="16.3" cy="21.2" r="1.25" fill="#166b39"/>
+          </svg>
+          <span>Mobile App<br>Access</span>
+        </li>
+        <li class="perk">
+          <svg class="perk__ico" viewBox="0 0 32 32" aria-hidden="true">
+            <path d="M9.1 23.6h13.6a4.35 4.35 0 0 0 .38-8.68 7.1 7.1 0 0 0-13.5-1.3 5.1 5.1 0 0 0-.48 9.98Z" fill="none" stroke="#166b39" stroke-width="1.9" stroke-linejoin="round"/>
+          </svg>
+          <span>Weather<br>Integration</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- ---------------- connector circuit ---------------- -->
+    <svg class="circuit" viewBox="0 0 1672 941" aria-hidden="true" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="lineFade" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#d9ffc9" stop-opacity=".0"/>
+          <stop offset=".5" stop-color="#d9ffc9" stop-opacity=".75"/>
+          <stop offset="1" stop-color="#d9ffc9" stop-opacity=".0"/>
+        </linearGradient>
+        <radialGradient id="nodeGlow">
+          <stop offset="0" stop-color="#f2fff0" stop-opacity=".95"/>
+          <stop offset=".35" stop-color="#bdffb2" stop-opacity=".55"/>
+          <stop offset="1" stop-color="#8ef58a" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <g class="circuit__lines">
+        <path d="M1036 236h34l26 26v64"/>
+        <path d="M1058 365h14v96"/>
+        <path d="M1058 478h18"/>
+        <path d="M1038 585h20v40"/>
+        <path d="M1100 322v52l26 26v78l44 44V598"/>
+        <path d="M1126 400h28"/>
+        <path d="M1100 606h54"/>
+        <path d="M1318 258h-18l-34 34v54"/>
+        <path d="M1318 392h-26"/>
+        <path d="M1318 500h-30l-30 30"/>
+        <path d="M1266 346v180"/>
+        <path d="M1180 372v42"/>
+        <path d="M1230 526h-48"/>
+        <path d="M1136 640h96"/>
+        <path d="M1100 660v-20"/>
+      </g>
+      <g class="circuit__nodes">
+        <circle cx="1096" cy="322" r="17" fill="url(#nodeGlow)"/>
+        <circle cx="1096" cy="322" r="3.4" fill="#f4fff2"/>
+        <circle cx="1126" cy="400" r="15" fill="url(#nodeGlow)"/>
+        <circle cx="1126" cy="400" r="3" fill="#f4fff2"/>
+        <circle cx="1072" cy="365" r="10" fill="url(#nodeGlow)"/>
+        <circle cx="1072" cy="365" r="2.4" fill="#f4fff2"/>
+        <circle cx="1076" cy="478" r="15" fill="url(#nodeGlow)"/>
+        <circle cx="1076" cy="478" r="3" fill="#f4fff2"/>
+        <circle cx="1058" cy="585" r="10" fill="url(#nodeGlow)"/>
+        <circle cx="1058" cy="585" r="2.4" fill="#f4fff2"/>
+        <circle cx="1100" cy="606" r="17" fill="url(#nodeGlow)"/>
+        <circle cx="1100" cy="606" r="3.4" fill="#f4fff2"/>
+        <circle cx="1266" cy="346" r="14" fill="url(#nodeGlow)"/>
+        <circle cx="1266" cy="346" r="2.8" fill="#f4fff2"/>
+        <circle cx="1266" cy="412" r="18" fill="url(#nodeGlow)"/>
+        <circle cx="1266" cy="412" r="3.4" fill="#f4fff2"/>
+        <circle cx="1266" cy="470" r="12" fill="url(#nodeGlow)"/>
+        <circle cx="1266" cy="470" r="2.6" fill="#f4fff2"/>
+        <circle cx="1230" cy="526" r="16" fill="url(#nodeGlow)"/>
+        <circle cx="1230" cy="526" r="3.2" fill="#f4fff2"/>
+        <circle cx="1180" cy="414" r="9" fill="url(#nodeGlow)"/>
+        <circle cx="1180" cy="414" r="2.2" fill="#f4fff2"/>
+        <circle cx="1136" cy="640" r="13" fill="url(#nodeGlow)"/>
+        <circle cx="1136" cy="640" r="2.8" fill="#f4fff2"/>
+      </g>
+    </svg>
+
+    <!-- ---------------- metric cards ---------------- -->
+    <div class="metrics">
+
+      <article class="metric metric--moisture" style="--x:852;--y:188;--w:184;--h:95;--icx:26;--icy:20;--icw:30;--ich:44;--tx:76;--ly:20;--vy:41;--ls:13.6;--vs:27;--us:12.6;--bx:22;--by:15;--bw:137;">
+        <span class="metric__icon">
+          <svg viewBox="0 0 36 46" aria-hidden="true">
+            <defs><linearGradient id="drop" x1=".3" y1="0" x2=".7" y2="1"><stop offset="0" stop-color="#57c9f5"/><stop offset="1" stop-color="#0d8bd6"/></linearGradient></defs>
+            <path d="M18 1.6c6.6 9.2 12.2 16.5 12.2 24.1A12.2 12.2 0 0 1 18 37.9 12.2 12.2 0 0 1 5.8 25.7C5.8 18.1 11.4 10.8 18 1.6Z" fill="url(#drop)"/>
+            <path d="M10.6 27.6c0 4.7 3 8.1 7.2 8.6" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".92"/>
+            <path d="M25.6 28c0 3.4-1.6 6-4.4 7.4" fill="none" stroke="#fff" stroke-width="2.1" stroke-linecap="round" opacity=".62"/>
+          </svg>
+        </span>
+        <span class="metric__label">Soil Moisture</span>
+        <span class="metric__value">48<span class="metric__unit">%</span></span>
+        <span class="metric__bar"><i style="--fill:60%;--c1:#63d8e8;--c2:#a9ecef"></i></span>
+      </article>
+
+      <article class="metric metric--nitrogen" style="--x:843;--y:318;--w:215;--h:94;--icx:20;--icy:15;--icw:56;--ich:58;--tx:77;--ly:4;--vy:26;--ls:15;--vs:27;--us:13;--bx:22;--by:21;--bw:171;">
+        <span class="metric__icon">
+          <svg viewBox="0 0 54 54" aria-hidden="true">
+            <defs><linearGradient id="nleaf" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="#c6ef7c"/><stop offset="1" stop-color="#8ed04b"/></linearGradient></defs>
+            <path d="M27 2.5c13.5 0 24.5 11 24.5 24.5S40.5 51.5 27 51.5 2.5 40.5 2.5 27 13.5 2.5 27 2.5Z" fill="url(#nleaf)"/>
+            <path d="M25.6 34.4c-6.6.4-11.5-3.7-12.2-11.5 7.4-.8 13.1 2.9 14.2 10.1" fill="#1e6b32"/>
+            <path d="M27.9 35.3c-1-9 4-16 13.1-18.1 1.3 9.2-4.4 17-12.7 18.1Z" fill="#1e6b32"/>
+            <path d="M26.6 45.4V34.6" fill="none" stroke="#1e6b32" stroke-width="2.6" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="metric__label">Nitrogen (N)</span>
+        <span class="metric__value">72<span class="metric__unit">ppm</span></span>
+        <span class="metric__bar"><i style="--fill:96%;--c1:#7ee06b;--c2:#b4f39a"></i></span>
+      </article>
+
+      <article class="metric metric--phosphorus" style="--x:818;--y:430;--w:240;--h:95;--icx:21;--icy:21;--icw:44;--ich:44;--tx:78;--ly:2;--vy:24;--ls:15;--vs:27;--us:13;--bx:20;--by:16;--bw:195;">
+        <span class="metric__icon">
+          <svg viewBox="0 0 44 44" aria-hidden="true">
+            <defs><linearGradient id="porb" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="#fbb03b"/><stop offset="1" stop-color="#f07c1f"/></linearGradient></defs>
+            <circle cx="22" cy="22" r="21" fill="url(#porb)"/>
+            <text x="22" y="22" text-anchor="middle" dominant-baseline="central" font-family="Figtree, sans-serif" font-size="24" font-weight="700" fill="#fff">P</text>
+          </svg>
+        </span>
+        <span class="metric__label">Phosphorus (P)</span>
+        <span class="metric__value">18<span class="metric__unit">ppm</span></span>
+        <span class="metric__bar"><i style="--fill:56%;--c1:#f8a05a;--c2:#fbd0a8"></i></span>
+      </article>
+
+      <article class="metric metric--potassium" style="--x:852;--y:543;--w:186;--h:86;--icx:21;--icy:22;--icw:42;--ich:42;--tx:74;--ly:0;--vy:19;--ls:14.2;--vs:26;--us:12.6;--bx:20;--by:21;--bw:141;">
+        <span class="metric__icon">
+          <svg viewBox="0 0 42 42" aria-hidden="true">
+            <defs><linearGradient id="korb" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="#b197f8"/><stop offset="1" stop-color="#8d68ee"/></linearGradient></defs>
+            <circle cx="21" cy="21" r="20" fill="url(#korb)"/>
+            <text x="21" y="21.5" text-anchor="middle" dominant-baseline="central" font-family="Figtree, sans-serif" font-size="23" font-weight="700" fill="#fff">K</text>
+          </svg>
+        </span>
+        <span class="metric__label">Potassium (K)</span>
+        <span class="metric__value">210<span class="metric__unit">ppm</span></span>
+        <span class="metric__bar"><i style="--fill:74%;--c1:#a98bf2;--c2:#e2d7fb"></i></span>
+      </article>
+
+      <article class="metric metric--temp" style="--x:1320;--y:219;--w:197;--h:84;--icx:30;--icy:21;--icw:26;--ich:48;--tx:76;--ly:21;--vy:44;--ls:14.2;--vs:27;--us:12.6;--bx:21;--by:6;--bw:153;">
+        <span class="metric__icon">
+          <svg viewBox="0 0 24 47" aria-hidden="true">
+            <defs><linearGradient id="therm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fbb03b"/><stop offset="1" stop-color="#e8452b"/></linearGradient></defs>
+            <path d="M8.4 27.2V8.1a3.6 3.6 0 0 1 7.2 0v19.1a6.9 6.9 0 1 1-7.2 0Z" fill="url(#therm)"/>
+            <path d="M12 24.8V9.2a1.7 1.7 0 0 1 3.4 0" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".75"/>
+            <circle cx="12" cy="35" r="3.4" fill="#fff" opacity=".55"/>
+            <g stroke="#e8452b" stroke-width="1.3" stroke-linecap="round" opacity=".85">
+              <path d="M18.4 11.6h2.4M18.4 15.4h2.4M18.4 19.2h2.4M18.4 23h2.4"/>
+            </g>
+          </svg>
+        </span>
+        <span class="metric__label">Soil Temperature</span>
+        <span class="metric__value">26<span class="metric__unit">°C</span></span>
+        <span class="metric__bar"><i style="--fill:100%;--c1:#f9a13c;--c2:#fbc98c"></i></span>
+      </article>
+
+      <article class="metric metric--ph" style="--x:1369;--y:350;--w:227;--h:84;--icx:22;--icy:24;--icw:38;--ich:42;--tx:70;--ly:2;--vy:24;--ls:15.2;--vs:26;--us:12.2;--bx:21;--by:12;--bw:182;">
+        <span class="metric__icon">
+          <svg viewBox="0 0 40 44" aria-hidden="true">
+            <defs><linearGradient id="flask" x1=".2" y1="0" x2=".8" y2="1"><stop offset="0" stop-color="#6ef0d4"/><stop offset="1" stop-color="#2fc7b4"/></linearGradient></defs>
+            <path d="M14.4 4.2h11.2v3.1h-2.1v9.3l9 18.6a5.4 5.4 0 0 1-4.9 7.8H12.4a5.4 5.4 0 0 1-4.9-7.8l9-18.6V7.3h-2.1Z" fill="#b9f7ec" stroke="#35cdbb" stroke-width="1.7" stroke-linejoin="round"/>
+            <path d="M11.6 30.4h16.8l4.1 8.4a3.4 3.4 0 0 1-3.1 4.9H10.6a3.4 3.4 0 0 1-3.1-4.9Z" fill="url(#flask)"/>
+            <path d="M15.4 34.4c1.6-1.6 3.5-2.4 5.6-2.4 2 0 3.4.8 4.6 2.4" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round" opacity=".75"/>
+          </svg>
+        </span>
+        <span class="metric__label">pH Level</span>
+        <span class="metric__value">6.7<span class="metric__unit">ppm</span></span>
+        <span class="metric__bar"><i style="--fill:72%;--c1:#57e2ce;--c2:#c9f7ef"></i></span>
+      </article>
+
+      <article class="metric metric--ec" style="--x:1320;--y:455;--w:248;--h:86;--icx:12;--icy:12;--icw:64;--ich:48;--tx:65;--ly:2;--vy:25;--ls:14.6;--vs:26;--us:12.2;--bx:60;--by:14;--bw:165;">
+        <span class="metric__icon">
+          <svg viewBox="0 0 64 48" aria-hidden="true">
+            <defs><linearGradient id="ecg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#66c8f5"/><stop offset="1" stop-color="#1e8fe0"/></linearGradient></defs>
+            <path d="M2 27h12l4.5-12 6 27 7-36 6 25 4-5h20.5" fill="none" stroke="url(#ecg)" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="8" cy="27" r="2.4" fill="#8fd6f7"/>
+          </svg>
+        </span>
+        <span class="metric__label">EC (Conductivity)</span>
+        <span class="metric__value">0.8<span class="metric__unit">mS/cm</span></span>
+        <span class="metric__bar"><i style="--fill:66%;--c1:#4aa8ee;--c2:#bfe0fb"></i></span>
+      </article>
+
+    </div>
+
+    <!-- ---------------- wave, scroll hint, stats ---------------- -->
+    <div class="bottom">
+      <svg class="wave" viewBox="0 0 1672 250" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 47C180 40 380 58 600 84C820 110 980 121 1120 118C1300 114 1500 92 1672 76L1672 250L0 250Z" fill="#fbf5e5"/>
+      </svg>
+
+      <div class="leaves" aria-hidden="true">
+        <svg viewBox="0 0 260 210">
+          <g fill="none" stroke="#cdd7ac" stroke-width="1.4" opacity=".85">
+            <path d="M18 118c-12-38 6-74 44-92 14 36-2 74-44 92Z"/>
+            <path d="M24 112c10-30 24-52 34-78"/>
+            <path d="M30 96c-6-6-12-10-18-12M38 80c-6-6-11-10-16-13M46 64c-6-6-9-10-12-14"/>
+            <path d="M62 168c-14-30-6-60 24-82 16 28 8 60-24 82Z"/>
+            <path d="M65 160c6-26 14-46 20-70"/>
+            <path d="M118 150c-2-35 18-62 52-70 6 34-16 63-52 70Z"/>
+            <path d="M126 145c12-26 24-44 38-60"/>
+            <path d="M132 128c-5-3-9-5-14-6M142 112c-5-3-9-5-13-6M152 98c-5-3-8-5-11-7"/>
+          </g>
+        </svg>
+      </div>
+
+      <ul class="stats">
+        <li class="stat">
+          <svg class="stat__ico" viewBox="0 0 40 30" aria-hidden="true">
+            <g fill="#12613a">
+              <circle cx="20" cy="8.4" r="4.6"/>
+              <path d="M20 14.6c4.8 0 8.6 3.2 8.6 7.2v5.4H11.4v-5.4c0-4 3.8-7.2 8.6-7.2Z"/>
+              <circle cx="8.4" cy="11" r="3.5"/>
+              <path d="M8.4 16.1c3.6 0 6.4 2.4 6.4 5.4v5.7H2v-5.7c0-3 2.8-5.4 6.4-5.4Z"/>
+              <circle cx="31.6" cy="11" r="3.5"/>
+              <path d="M31.6 16.1c3.6 0 6.4 2.4 6.4 5.4v5.7H25.2v-5.7c0-3 2.8-5.4 6.4-5.4Z"/>
+            </g>
+          </svg>
+          <span class="stat__num" style="--nx:52">10K+</span>
+          <span class="stat__label" style="--nx:52">Farmers Empowered</span>
+        </li>
+        <li class="stat">
+          <svg class="stat__ico" viewBox="0 0 40 42" aria-hidden="true">
+            <path d="M19 21.8c-6.6.4-11.4-3.8-12.1-11.6 7.3-.8 13 2.9 14.1 10.1Z" fill="#8dc63f"/>
+            <path d="M21.3 22.8c-1-9 4-16.2 13.1-18.3 1.3 9.2-4.4 17.1-13.1 18.3Z" fill="#7bb32e"/>
+            <path d="M19.7 38.8V22.2" fill="none" stroke="#5f9c24" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+          <span class="stat__num" style="--nx:50">25%</span>
+          <span class="stat__label" style="--nx:50">Higher Crop Yield</span>
+        </li>
+        <li class="stat">
+          <svg class="stat__ico" viewBox="0 0 40 42" aria-hidden="true">
+            <path d="M17.6 23.4C9.3 23.9 3.4 18.3 2.5 8.7c9.4-1.1 16.7 3.8 18 13.1Z" fill="#8dc63f"/>
+            <path d="M20.4 24.6c-1.3-11.5 5.2-20.7 16.8-23.4 1.7 11.8-5.6 21.9-16.8 23.4Z" fill="#2f8a34"/>
+            <path d="M18.4 40.5V24" fill="none" stroke="#2f8a34" stroke-width="2.2" stroke-linecap="round"/>
+          </svg>
+          <span class="stat__num" style="--nx:49">40%</span>
+          <span class="stat__label" style="--nx:49">Water Savings</span>
+        </li>
+        <li class="stat">
+          <svg class="stat__ico" viewBox="0 0 36 42" aria-hidden="true">
+            <path d="M18 1.2 34 5.6v13.2c0 10.1-6.4 18.2-16 21.9C8.4 37 2 28.9 2 18.8V5.6Z" fill="#2b7a3f"/>
+            <path d="M18 6.4 29.6 9.5v9.3c0 7.3-4.6 13.2-11.6 16-7-2.8-11.6-8.7-11.6-16V9.5Z" fill="#f4f6e6"/>
+            <path d="M18 22.6c-2.9 0-5-2-5.2-5.2 3.2-.3 5.6 1.3 6 4.4" fill="#2b7a3f"/>
+            <path d="M19 23c-.4-3.9 1.8-7.1 5.7-7.9.5 4-2 7.4-5.7 7.9Z" fill="#2b7a3f"/>
+          </svg>
+          <span class="stat__num" style="--nx:48">Healthier</span>
+          <span class="stat__label" style="--nx:48">Soil for Future Generations</span>
+        </li>
+      </ul>
+
+      <a class="scroll" href="#product">
+        <span class="scroll__rule" aria-hidden="true"></span>
+        <span class="scroll__ring" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 5v13M6.6 12.6 12 18l5.4-5.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="scroll__text">Scroll to explore</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- mobile nav drawer -->
+  <div class="drawer" id="mobile-menu" hidden>
+    <a href="#home">Home</a>
+    <a href="#product">Product</a>
+    <a href="#how">How it Works</a>
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#about">About</a>
+    <div class="drawer__actions">
+      <a class="btn btn--ghost" href="#signin">Sign In</a>
+      <a class="btn btn--primary" href="#pricing">Get Started</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ PRODUCT ============================ -->
+<section class="section section--product" id="product">
+  <div class="shell">
+    <div class="section__head">
+      <p class="eyebrow">The product</p>
+      <h2 class="h2">One sensor. A complete picture of your soil.</h2>
+      <p class="sub">Mazhi Sheti reads moisture, nutrients, pH, temperature and conductivity straight from the root zone — then turns those numbers into simple, timely actions for your farm.</p>
+    </div>
+
+    <div class="product__grid">
+      <div class="product__media">
+        <img src="assets/img/hero-field.jpg" alt="The Mazhi Sheti smart soil sensor standing in a field of young crop at sunrise" loading="lazy">
+        <span class="product__badge"><b>7</b> parameters measured</span>
+      </div>
+      <ul class="product__list">
+        <li>
+          <span class="dot"></span>
+          <div><h3>Reads the root zone</h3><p>Three probes sit where your crop actually feeds, sampling every 15 minutes, all day, every day.</p></div>
+        </li>
+        <li>
+          <span class="dot"></span>
+          <div><h3>Speaks your language</h3><p>No spreadsheets. Just clear guidance: irrigate today, wait two days, add a little nitrogen.</p></div>
+        </li>
+        <li>
+          <span class="dot"></span>
+          <div><h3>Built for the field</h3><p>Weather-sealed, solar-friendly battery life and a signal that reaches from the far end of the plot.</p></div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ HOW IT WORKS ============================ -->
+<section class="section section--how" id="how">
+  <div class="shell">
+    <div class="section__head section__head--center">
+      <p class="eyebrow">How it works</p>
+      <h2 class="h2">From soil to decision in three steps.</h2>
+    </div>
+    <ol class="steps">
+      <li class="step">
+        <span class="step__num">01</span>
+        <h3>Plant the sensor</h3>
+        <p>Push Mazhi Sheti into the soil in under a minute. It pairs with the app and starts reading immediately.</p>
+      </li>
+      <li class="step">
+        <span class="step__num">02</span>
+        <h3>Watch the soil talk</h3>
+        <p>Moisture, NPK, pH, temperature and EC stream to your phone with trend lines for every parameter.</p>
+      </li>
+      <li class="step">
+        <span class="step__num">03</span>
+        <h3>Act with confidence</h3>
+        <p>Personalised recommendations tell you what to do, when to do it, and how much to save.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- ============================ FEATURES ============================ -->
+<section class="section section--features" id="features">
+  <div class="shell">
+    <div class="section__head">
+      <p class="eyebrow">Features</p>
+      <h2 class="h2">Everything you need to grow smarter.</h2>
+    </div>
+    <div class="cards">
+      <article class="card">
+        <span class="card__ico">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M13.6 21.2c-3.9.2-6.8-2.3-7.2-6.7 4.4-.5 7.8 1.7 8.5 6Z" fill="currentColor"/><path d="M15.1 21.8c-.6-5.2 2.4-9.4 7.7-10.6.7 5.3-2.7 9.8-7.7 10.6Z" fill="currentColor"/><path d="M15.2 30.2V20.6M6.9 26.4h16.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>
+        </span>
+        <h3>Real-time soil data</h3>
+        <p>Live readings every 15 minutes, with history for the whole season.</p>
+      </article>
+      <article class="card">
+        <span class="card__ico">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M8.4 27V19.4c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8V27Z" fill="currentColor"/><path d="M13.6 27v-9.5c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8V27Z" fill="currentColor"/><path d="M18.8 27v-6.2c0-1 .8-1.8 1.8-1.8s1.8.8 1.8 1.8V27Z" fill="currentColor"/><path d="M24 27V13.6" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/><path d="M22.1 9.9c1.2-1.6 3-2.3 4.9-2.1.2 1.8-.6 3.4-2.2 4.5Z" fill="currentColor"/></svg>
+        </span>
+        <h3>AI-powered recommendations</h3>
+        <p>Crop-aware advice on irrigation timing, fertiliser and soil health.</p>
+      </article>
+      <article class="card">
+        <span class="card__ico">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="10.6" y="6.3" width="11.5" height="18.2" rx="3.2" fill="none" stroke="currentColor" stroke-width="1.9"/><circle cx="16.3" cy="21.2" r="1.25" fill="currentColor"/><path d="M20.9 8.4h-8.6c-2 0-3.6 1.6-3.6 3.6v8.5c0 2 1.6 3.6 3.6 3.6h8.6c2 0 3.6-1.6 3.6-3.6v-8.5c0-2-1.6-3.6-3.6-3.6Z" fill="none" stroke="currentColor" stroke-width="1.2" opacity=".45"/></svg>
+        </span>
+        <h3>Mobile app access</h3>
+        <p>Your whole farm in one pocket-sized dashboard, online or off.</p>
+      </article>
+      <article class="card">
+        <span class="card__ico">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M9.1 23.6h13.6a4.35 4.35 0 0 0 .38-8.68 7.1 7.1 0 0 0-13.5-1.3 5.1 5.1 0 0 0-.48 9.98Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>
+        </span>
+        <h3>Weather integration</h3>
+        <p>Local forecasts woven into every recommendation, so rain never wastes a day.</p>
+      </article>
+      <article class="card">
+        <span class="card__ico">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M18 2 5.5 17.4h8.3L14 30l12.5-15.4h-8.3Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/></svg>
+        </span>
+        <h3>Low power, long season</h3>
+        <p>Weeks of runtime per charge, with a battery indicator that never surprises you.</p>
+      </article>
+      <article class="card">
+        <span class="card__ico">
+          <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3.2 27 6.6v9c0 7-4.4 12.5-11 15-6.6-2.5-11-8-11-15v-9Z" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"/><path d="M11 16.2 14.6 20l6.6-7.2" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <h3>Works offline</h3>
+        <p>Readings are stored on the sensor, so a patchy connection never costs you data.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ PRICING ============================ -->
+<section class="section section--pricing" id="pricing">
+  <div class="shell">
+    <div class="section__head section__head--center">
+      <p class="eyebrow">Pricing</p>
+      <h2 class="h2">Start small. Grow with it.</h2>
+      <p class="sub">One sensor covers about an acre of most field crops. Add more as your farm grows.</p>
+    </div>
+    <div class="plans">
+      <article class="plan">
+        <h3 class="plan__name">Starter</h3>
+        <p class="plan__price"><span>₹</span>4,999<em>/ one sensor</em></p>
+        <p class="plan__note">For a single plot</p>
+        <ul class="plan__list">
+          <li>1 smart soil sensor</li>
+          <li>Live soil dashboard</li>
+          <li>30-day data history</li>
+          <li>Email support</li>
+        </ul>
+        <a class="btn btn--outline" href="#signin">Choose Starter</a>
+      </article>
+      <article class="plan plan--featured">
+        <span class="plan__flag">Most popular</span>
+        <h3 class="plan__name">Grower</h3>
+        <p class="plan__price"><span>₹</span>12,999<em>/ 3 sensors</em></p>
+        <p class="plan__note">For the working farm</p>
+        <ul class="plan__list">
+          <li>3 smart soil sensors</li>
+          <li>AI crop recommendations</li>
+          <li>Weather integration</li>
+          <li>2-season data history</li>
+          <li>WhatsApp support</li>
+        </ul>
+        <a class="btn btn--primary" href="#signin">Choose Grower</a>
+      </article>
+      <article class="plan">
+        <h3 class="plan__name">Estate</h3>
+        <p class="plan__price"><span>₹</span>Custom</p>
+        <p class="plan__note">For larger operations</p>
+        <ul class="plan__list">
+          <li>5+ sensors, zoned reads</li>
+          <li>Agronomist review</li>
+          <li>Team accounts</li>
+          <li>API access</li>
+          <li>Priority on-site support</li>
+        </ul>
+        <a class="btn btn--outline" href="#signin">Talk to us</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============================ ABOUT ============================ -->
+<section class="section section--about" id="about">
+  <div class="shell about">
+    <div>
+      <p class="eyebrow">About us</p>
+      <h2 class="h2">Made with farmers, for farmers.</h2>
+      <p class="sub">Mazhi Sheti means “my farm”. We are a small team of agronomists, engineers and farmers’ children building tools that make soil readable — so every grower can make the same informed decision the big estates do.</p>
+      <div class="about__facts">
+        <div><b>10K+</b><span>Farmers empowered</span></div>
+        <div><b>25%</b><span>Higher crop yield</span></div>
+        <div><b>40%</b><span>Water savings</span></div>
+      </div>
+      <a class="btn btn--primary" href="#pricing">Get Started
+        <svg class="ico-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+    <blockquote class="quote">
+      <p>“Before Mazhi Sheti I irrigated by habit. Now I irrigate by soil. My water bill dropped by a third and the crop did not notice — except that it grew better.”</p>
+      <footer><span class="quote__avatar" aria-hidden="true">RS</span><span><b>Ramesh S.</b><br>12 acres, Vidarbha</span></footer>
+    </blockquote>
+  </div>
+</section>
+
+<!-- ============================ FOOTER ============================ -->
+<footer class="footer" id="signin">
+  <div class="shell footer__inner">
+    <div class="footer__brand">
+      <a class="brand" href="#home" aria-label="Mazhi Sheti — home">
+        <span class="brand__mark">
+          <svg viewBox="0 0 48 48" aria-hidden="true">
+            <path d="M22.4 30.2C13.9 30.6 7.6 25 6.6 15.1c9.7-1.1 17.2 3.9 18.6 13.4" fill="#8dc63f"/>
+            <path d="M25.4 31.5C24 19.8 30.7 10.4 42.6 7.6c1.6 11.9-5.9 22.1-17.2 23.9Z" fill="#14532d"/>
+            <path d="M39.6 11.4c-6.2 3.1-10.3 8.4-12.4 15.6" fill="none" stroke="#f2efdc" stroke-width="1.6" stroke-linecap="round"/>
+            <path d="M13.1 18.6c3.4 1.9 6 4.8 7.6 8.6" fill="none" stroke="#f2efdc" stroke-width="1.4" stroke-linecap="round" opacity=".85"/>
+            <path d="M23.7 44.5V28.6" fill="none" stroke="#14532d" stroke-width="2.6" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand__name">Mazhi Sheti</span>
+      </a>
+      <p>Smart soil. Better crops. Brighter tomorrow.</p>
+    </div>
+    <nav class="footer__links" aria-label="Footer">
+      <a href="#product">Product</a>
+      <a href="#how">How it Works</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#about">About</a>
+    </nav>
+    <div class="footer__cta">
+      <p>Ready to understand your soil?</p>
+      <a class="btn btn--primary" href="#pricing">Get Started
+        <svg class="ico-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </div>
+  <div class="shell footer__base">
+    <span>© <span id="year">2026</span> Mazhi Sheti. All rights reserved.</span>
+    <span>Nagpur, Maharashtra · hello@mazhisheti.in</span>
+  </div>
+</footer>
+
+<script src="assets/js/main.js" defer></script>
+</body>
+</html>
