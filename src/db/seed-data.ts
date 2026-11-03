@@ -229,6 +229,155 @@ export interface DeviceCommandRecord {
   deviceAckPayload?: string;
 }
 
+// =========================================================================
+// PHASE 5 INTERFACES: ORGANIC TRANSITION, NO-TILL & SUSTAINABLE AGRI
+// =========================================================================
+
+export interface OrganicProgramRecord {
+  id: string;
+  name: string;
+  marathiName: string;
+  certifyingBody: string;
+  conversionPeriodMonths: number;
+  standardGuidelines: string;
+  description: string;
+}
+
+export interface OrganicTransitionRecord {
+  id: string;
+  farmerId: string;
+  farmId: string;
+  fieldId: string;
+  fieldName: string;
+  programId: string;
+  programName: string;
+  registrationDate: string;
+  targetCertificationDate: string;
+  currentStage:
+    | "initial_assessment"
+    | "soil_assessment"
+    | "transition_planning"
+    | "input_adoption"
+    | "soil_improvement"
+    | "crop_monitoring"
+    | "documentation"
+    | "certification_prep";
+  conversionStatus:
+    | "in_conversion_c1"
+    | "in_conversion_c2"
+    | "in_conversion_c3"
+    | "under_audit"
+    | "certified_verified";
+  progressPct: number;
+  inspectorAgency: string;
+  auditNotes: string;
+  baselineChemicalNpkKg: number;
+  currentChemicalNpkKg: number;
+  isCertified: boolean;
+  lastAuditDate?: string;
+  nextAuditDate?: string;
+}
+
+export interface FarmingPracticeRecord {
+  id: string;
+  fieldId: string;
+  fieldName: string;
+  transitionRecordId?: string;
+  seasonYear: string;
+  practiceType:
+    | "synthetic_conventional"
+    | "integrated_ipm"
+    | "transitioning_organic"
+    | "certified_organic"
+    | "natural_zbnf";
+  chemicalFertilizerUsedKg: number;
+  chemicalPesticidesUsedLiters: number;
+  bioInputsAdopted: string;
+  soilConservationMethods: string;
+  notes: string;
+  recordedDate: string;
+}
+
+export interface OrganicInputRecord {
+  id: string;
+  name: string;
+  marathiName: string;
+  category:
+    | "compost"
+    | "vermicompost"
+    | "biofertilizer"
+    | "organic_manure"
+    | "botanical_pest_control"
+    | "green_manure"
+    | "cover_crop";
+  preparationMethod: string;
+  composition: string;
+  primaryNutrientsOrTarget: string;
+  applicationGuidelines: string;
+  isFarmPrepared: boolean;
+  standardDosagePerAcre: string;
+  certificationComplianceStatus: string;
+}
+
+export interface InputApplicationRecord {
+  id: string;
+  fieldId: string;
+  fieldName: string;
+  transitionRecordId?: string;
+  organicInputId?: string;
+  inputName: string;
+  category: string;
+  quantity: number;
+  unit: string;
+  applicationMethod:
+    | "broadcasting"
+    | "drip_fertigation"
+    | "foliar_spray"
+    | "soil_drenching"
+    | "seed_treatment";
+  appliedDate: string;
+  costIncurred: number;
+  batchLotNumber?: string;
+  notes?: string;
+}
+
+export interface NoTillRecord {
+  id: string;
+  fieldId: string;
+  fieldName: string;
+  seasonYear: string;
+  suitabilityScore: number;
+  residueType: string;
+  residueCoveragePct: number;
+  coverCropPlanted: string;
+  soilDisturbanceDepthCm: number;
+  moistureRetentionScore: number;
+  weedSuppressionMethod: string;
+  notes: string;
+  recordedDate: string;
+}
+
+export interface AgriculturalResourceRecord {
+  id: string;
+  title: string;
+  marathiTitle?: string;
+  marathiName?: string;
+  category:
+    | "organic_farming"
+    | "soil_management"
+    | "crop_planning"
+    | "water_conservation"
+    | "pest_management"
+    | "no_till_farming"
+    | "sustainable_agriculture";
+  summary: string;
+  readTimeMinutes: number;
+  author: string;
+  pdfGuideUrl?: string;
+  contentHtmlOrMarkdown?: string;
+  featured: boolean;
+}
+
 export interface SeedData {
   users: Array<{
     id: string;
@@ -355,6 +504,14 @@ export interface SeedData {
   irrigationSchedules: IrrigationScheduleRecord[];
   irrigationEvents: IrrigationEventRecord[];
   deviceCommands: DeviceCommandRecord[];
+  // Phase 5: Organic Programs, Transition, Practices, Inputs, No-Till, Resources
+  organicPrograms: OrganicProgramRecord[];
+  organicTransitions: OrganicTransitionRecord[];
+  farmingPractices: FarmingPracticeRecord[];
+  organicInputs: OrganicInputRecord[];
+  inputApplications: InputApplicationRecord[];
+  noTillRecords: NoTillRecord[];
+  agriculturalResources: AgriculturalResourceRecord[];
 }
 
 export const initialSeedData: SeedData = {
@@ -1342,6 +1499,352 @@ export const initialSeedData: SeedData = {
       acknowledgedAt: "2026-10-28 11:14:02",
       executedAt: "2026-10-28 11:14:15",
       deviceAckPayload: "CALIBRATION_OK: Zero-drift adjusted, calibrated against baseline vertisol index.",
+    },
+  ],
+  organicPrograms: [
+    {
+      id: "org_prog_01",
+      name: "NPOP National Organic Program",
+      marathiName: "राष्ट्रीय सेंद्रिय उत्पादन कार्यक्रम (NPOP)",
+      certifyingBody: "APEDA & Accredited Certification Bodies",
+      conversionPeriodMonths: 36,
+      standardGuidelines: "Adheres strictly to the National Standards for Organic Production (NSOP). Prohibits all synthetic chemical fertilizers, GMO seeds, synthetic pesticides, and sewage sludge. Requires mandatory 3-year documented transition period with third-party accredited audits.",
+      description: "India's official export and domestic organic standard recognized across EU, Switzerland, and USA equivalence frameworks.",
+    },
+    {
+      id: "org_prog_02",
+      name: "PGS-India Organic (Participatory Guarantee System)",
+      marathiName: "सहभागी हमी प्रणाली - सेंद्रिय भारत (PGS-India)",
+      certifyingBody: "National Centre of Organic Farming (NCOF) & Regional Councils",
+      conversionPeriodMonths: 36,
+      standardGuidelines: "Peer-review certification model where local farmer groups audit each other's fields. Emphasizes farmer empowerment, local consumption, trust-based verification, and zero certification fees.",
+      description: "Low-cost community-driven certification system ideal for domestic markets, local haats, and farmer producer companies.",
+    },
+    {
+      id: "org_prog_03",
+      name: "Bharatiya Prakritik Krishi Paddhati (BPKP)",
+      marathiName: "भारतीय प्राकृतिक कृषी पद्धती (नैसर्गिक शेती)",
+      certifyingBody: "State Department of Agriculture & Natural Farming Mission",
+      conversionPeriodMonths: 24,
+      standardGuidelines: "Zero external inputs. Exclusively relies on on-farm indigenous cow-based formulations (Jeev Amrit, Beejamrit, Acchadana mulching, Whapasa aeration, and botanical insect repellents).",
+      description: "Sub-scheme under Paramparagat Krishi Vikas Yojana (PKVY) promoting traditional natural agroecology.",
+    },
+  ],
+  organicTransitions: [
+    {
+      id: "tr_01",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A (Cotton BG-II)",
+      programId: "org_prog_01",
+      programName: "NPOP National Organic Program",
+      registrationDate: "2024-07-15",
+      targetCertificationDate: "2027-07-15",
+      currentStage: "input_adoption",
+      conversionStatus: "in_conversion_c2", // Year 2 of 3
+      progressPct: 65,
+      inspectorAgency: "Aditi Organic Certifications Pvt. Ltd.",
+      auditNotes: "Year-2 annual surveillance inspection completed on 2026-08-20. Soil analysis confirmed zero organophosphate or synthetic nitrogen residues. Soil organic carbon improved to 0.68%. Permitted to label produce as 'In-Conversion Organic - Year 2'.",
+      baselineChemicalNpkKg: 180,
+      currentChemicalNpkKg: 0,
+      isCertified: false, // Strict: NOT certified yet! Must finish Year 3
+      lastAuditDate: "2026-08-20",
+      nextAuditDate: "2027-01-20",
+    },
+    {
+      id: "tr_02",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_turmeric_03",
+      fieldName: "Field C - Salem Turmeric",
+      programId: "org_prog_02",
+      programName: "PGS-India Organic",
+      registrationDate: "2023-06-10",
+      targetCertificationDate: "2026-06-10",
+      currentStage: "certification_prep",
+      conversionStatus: "under_audit", // Final Year 3 audit
+      progressPct: 92,
+      inspectorAgency: "Wardha PGS Local Farmer Council #18",
+      auditNotes: "Final conversion audit in progress. Local peer group verified continuous 3-year record book of farmyard manure, Jeevamrit, and botanical sprays. Curcumin sample sent for residue clearance.",
+      baselineChemicalNpkKg: 140,
+      currentChemicalNpkKg: 0,
+      isCertified: false, // In final review
+      lastAuditDate: "2026-09-14",
+      nextAuditDate: "2026-11-20",
+    },
+  ],
+  farmingPractices: [
+    {
+      id: "fp_2026_01",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      transitionRecordId: "tr_01",
+      seasonYear: "Kharif 2026 (Current)",
+      practiceType: "transitioning_organic",
+      chemicalFertilizerUsedKg: 0,
+      chemicalPesticidesUsedLiters: 0,
+      bioInputsAdopted: "Jeev Amrit (400L total via drip), Vermicompost (2 tonnes), Neemastra foliar spray",
+      soilConservationMethods: "Zero-till stalk retention, Sunn hemp green mulching, contour bunding",
+      notes: "100% synthetic chemical elimination maintained for 24 months. Root nodulation and earthworm activity thriving.",
+      recordedDate: "2026-10-15",
+    },
+    {
+      id: "fp_2025_02",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      transitionRecordId: "tr_01",
+      seasonYear: "Kharif 2025 (Conversion Year 1)",
+      practiceType: "transitioning_organic",
+      chemicalFertilizerUsedKg: 40,
+      chemicalPesticidesUsedLiters: 0,
+      bioInputsAdopted: "FYM manure, Trichoderma seed treatment, Dashparni Ark",
+      soilConservationMethods: "Deep summer plowing and crop residue incorporation",
+      notes: "Year 1 step-down: phased out chemical pesticides completely; reduced synthetic urea by 75%.",
+      recordedDate: "2025-10-10",
+    },
+    {
+      id: "fp_2024_03",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      seasonYear: "Kharif 2024 (Baseline Prior to Transition)",
+      practiceType: "synthetic_conventional",
+      chemicalFertilizerUsedKg: 180,
+      chemicalPesticidesUsedLiters: 3.5,
+      bioInputsAdopted: "None (Conventional practice)",
+      soilConservationMethods: "Standard conventional disc tilling",
+      notes: "Baseline year before enrolling in NPOP organic transition program.",
+      recordedDate: "2024-06-15",
+    },
+  ],
+  organicInputs: [
+    {
+      id: "inp_jeev_01",
+      name: "Jeev Amrit (जीवामृत)",
+      marathiName: "जीवामृत खत",
+      category: "biofertilizer",
+      preparationMethod: "Mix 10 kg indigenous Desi Cow dung, 10 liters Desi Cow urine, 2 kg jaggery, 2 kg besan (gram flour), and 1 handful virgin forest soil in 200 liters water. Stir clockwise twice daily and ferment in shade for 48 to 72 hours.",
+      composition: "Millions of aerobic and anaerobic nitrogen-fixing, phosphate-solubilizing, and carbon-digesting beneficial soil microbes.",
+      primaryNutrientsOrTarget: "Soil microbiome multiplier, root stimulant, and bio-available macro/micro nutrient unlocker.",
+      applicationGuidelines: "Apply 200 liters per acre with irrigation water or via drip fertigation twice monthly.",
+      isFarmPrepared: true,
+      standardDosagePerAcre: "200 Liters / Acre",
+      certificationComplianceStatus: "100% compliant with NPOP & PGS standards",
+    },
+    {
+      id: "inp_vermi_02",
+      name: "Vermicompost (गांडूळ खत)",
+      marathiName: "सेंद्रिय गांडूळ खत",
+      category: "vermicompost",
+      preparationMethod: "Bed system using Eisenia fetida earthworms feeding on semi-decomposed cow dung, crop residue, and green biomass for 60 to 75 days.",
+      composition: "Organic Carbon (18-22%), Total Nitrogen (1.5-2.0%), Available Phosphorus (0.8-1.0%), Potassium (1.2-1.5%), Humic acid.",
+      primaryNutrientsOrTarget: "Improves soil water-holding capacity, porous aggregate formation, and cation exchange capacity.",
+      applicationGuidelines: "Broadcast evenly across field and lightly incorporate into soil before sowing or during earthing-up.",
+      isFarmPrepared: true,
+      standardDosagePerAcre: "1.5 to 2.0 Tonnes / Acre",
+      certificationComplianceStatus: "Fully approved under Annex 1 of NPOP standards",
+    },
+    {
+      id: "inp_neem_03",
+      name: "Neemastra (निमास्त्र)",
+      marathiName: "निमास्त्र कीटकनाशक",
+      category: "botanical_pest_control",
+      preparationMethod: "Crush 5 kg Neem leaves and 5 kg Neem fruits/seeds. Soak in 5 liters cow urine and 2 kg cow dung in 100 liters water. Ferment for 48 hours and strain through cloth.",
+      composition: "Azadirachtin (natural tetranortriterpenoid), Meliantriol, and Nimbin alkaloid complex.",
+      primaryNutrientsOrTarget: "Anti-feedant and repellent against sucking pests: Whiteflies, Jassids, Aphids, and Thrips.",
+      applicationGuidelines: "Foliar spray at 5-10% dilution in early morning or evening at first sign of sucking pest infestation.",
+      isFarmPrepared: true,
+      standardDosagePerAcre: "100 Liters solution / Acre",
+      certificationComplianceStatus: "Approved botanical pest formulation",
+    },
+    {
+      id: "inp_brahma_04",
+      name: "Brahmastra (ब्रह्मास्त्र)",
+      marathiName: "ब्रह्मास्त्र अर्क",
+      category: "botanical_pest_control",
+      preparationMethod: "Boil leaves of Neem, Custard Apple (Sitaphal), Papaya, Guava, and Castor in 10 liters Desi Cow urine until volume reduces by half. Cool and ferment for 24 hours.",
+      composition: "Complex botanical phyto-toxins with strong repellent and neurotoxic action on caterpillars.",
+      primaryNutrientsOrTarget: "Helicoverpa bollworms, Spodoptera armyworms, and fruit/pod borers.",
+      applicationGuidelines: "Foliar spray at 2-3 liters concoction per 100 liters water.",
+      isFarmPrepared: true,
+      standardDosagePerAcre: "2.5 Liters concentrate in 100L water",
+      certificationComplianceStatus: "Approved non-synthetic pest control",
+    },
+    {
+      id: "inp_tricho_05",
+      name: "Trichoderma Viride (जैविक बुरशीनाशक)",
+      marathiName: "ट्रायकोडर्मा व्हिरीडी",
+      category: "biofertilizer",
+      preparationMethod: "Lab-isolated fungal bio-agent cultivated on sterilized sorghum/millets.",
+      composition: "Trichoderma viride 1.0% WP (Min. 2 x 10^6 CFU/gm).",
+      primaryNutrientsOrTarget: "Biological mycoparasite combating Fusarium wilt, Rhizoctonia root rot, and damping off.",
+      applicationGuidelines: "Seed treatment at 10g/kg seed or soil application mixed with 100kg farmyard manure per acre.",
+      isFarmPrepared: false,
+      standardDosagePerAcre: "2.5 kg / Acre in FYM",
+      certificationComplianceStatus: "Certified organic biological input",
+    },
+    {
+      id: "inp_green_06",
+      name: "Green Manure - Dhaincha (ढेचा / Sesbania)",
+      marathiName: "ताग व ढेंचा हिरवळीचे खत",
+      category: "green_manure",
+      preparationMethod: "Broadcast Sesbania aculeata seeds at 25 kg/acre with pre-monsoon showers. Grow for 45 days until flowering.",
+      composition: "Succulent biomass yielding 15-20 tonnes/ha containing 80-100 kg atmospheric nitrogen fixed.",
+      primaryNutrientsOrTarget: "Rapidly boosts soil active humus, fixes atmospheric nitrogen, and loosens hard black clay pans.",
+      applicationGuidelines: "Chop and incorporate into root zone using disc harrow or rotavator 10 days before primary sowing.",
+      isFarmPrepared: true,
+      standardDosagePerAcre: "25 kg seeds / Acre",
+      certificationComplianceStatus: "Core mandatory practice under organic guidelines",
+    },
+  ],
+  inputApplications: [
+    {
+      id: "ia_01",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      transitionRecordId: "tr_01",
+      organicInputId: "inp_jeev_01",
+      inputName: "Jeev Amrit (जीवामृत)",
+      category: "biofertilizer",
+      quantity: 200,
+      unit: "liters",
+      applicationMethod: "drip_fertigation",
+      appliedDate: "2026-10-22",
+      costIncurred: 180, // On-farm ingredient cost
+      batchLotNumber: "JA-2026-OCT-B2",
+      notes: "Injected through Venturi drip system during morning irrigation. Soil active smell fresh and earthy.",
+    },
+    {
+      id: "ia_02",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      transitionRecordId: "tr_01",
+      organicInputId: "inp_vermi_02",
+      inputName: "Vermicompost (गांडूळ खत)",
+      category: "vermicompost",
+      quantity: 1.5,
+      unit: "tonnes",
+      applicationMethod: "broadcasting",
+      appliedDate: "2026-09-25",
+      costIncurred: 4500,
+      batchLotNumber: "VC-FARM-2026-04",
+      notes: "Top-dressed along root lines before earthing up. Earthworm casts clearly visible in top 5 cm.",
+    },
+    {
+      id: "ia_03",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      transitionRecordId: "tr_01",
+      organicInputId: "inp_neem_03",
+      inputName: "Neemastra (निमास्त्र)",
+      category: "botanical_pest_control",
+      quantity: 80,
+      unit: "liters",
+      applicationMethod: "foliar_spray",
+      appliedDate: "2026-10-04",
+      costIncurred: 220,
+      batchLotNumber: "NEEM-2026-09",
+      notes: "Foliar mist applied at 8% dilution for Jassid and whitefly control. 95% pest suppression achieved without synthetic chemicals.",
+    },
+  ],
+  noTillRecords: [
+    {
+      id: "ntr_01",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      seasonYear: "Kharif 2026",
+      suitabilityScore: 92,
+      residueType: "cotton_stalk_mulch",
+      residueCoveragePct: 85,
+      coverCropPlanted: "Sunn hemp (ताग) + Cowpea cover",
+      soilDisturbanceDepthCm: 0, // Strict zero-till
+      moistureRetentionScore: 94,
+      weedSuppressionMethod: "dense_mulch_roller",
+      notes: "Soybean and cotton stubble rolled flat with chevron roller-crimper. Happy Seeder zero-till planted directly through mulch mat. Zero deep plowing.",
+      recordedDate: "2026-10-20",
+    },
+    {
+      id: "ntr_02",
+      fieldId: "field_02",
+      fieldName: "East Gat 143/B",
+      seasonYear: "Kharif 2026",
+      suitabilityScore: 84,
+      residueType: "soybean_stubble",
+      residueCoveragePct: 70,
+      coverCropPlanted: "Chickpea (हरभरा) Stubble residue",
+      soilDisturbanceDepthCm: 3, // Minimal strip-till
+      moistureRetentionScore: 88,
+      weedSuppressionMethod: "cover_crop_allelopathy",
+      notes: "Conservation strip-till along planting rows. Inter-row mulch preserved undisturbed.",
+      recordedDate: "2026-09-30",
+    },
+  ],
+  agriculturalResources: [
+    {
+      id: "res_01",
+      title: "Complete NPOP Organic Conversion Manual: 3-Year Transition Roadmap",
+      marathiTitle: "सेंद्रिय शेती संक्रमण मार्गदर्शक: ३ वर्षांची संपूर्ण कार्यप्रणाली",
+      category: "organic_farming",
+      summary: "Comprehensive guide detailing the 8-stage transition roadmap for converting conventional farmland into certified organic production under Indian National Standards for Organic Production (NPOP). Covers audit documentation, buffer zones, and accredited verification.",
+      readTimeMinutes: 8,
+      author: "Dr. Anjali Deshmukh (Ph.D. Soil Agronomy, PDKV Akola)",
+      pdfGuideUrl: "/docs/NPOP_Organic_Conversion_Manual.pdf",
+      featured: true,
+    },
+    {
+      id: "res_02",
+      title: "Zero-Budget Natural Farming: Standard Preparation of Jeev Amrit & Beejamrit",
+      marathiTitle: "नैसर्गिक शेती: जीवामृत व बीजामृत बनवण्याची प्रमाणित कृती",
+      category: "sustainable_agriculture",
+      summary: "Step-by-step masterclass on preparing active microbial inoculants using indigenous Desi Cow dung and urine. Details fermentation temperatures, stirring schedules, and Venturi drip delivery without nozzle clogging.",
+      readTimeMinutes: 6,
+      author: "Vilasrao Patil & Regional Krishi Vigyan Kendra",
+      pdfGuideUrl: "/docs/Jeev_Amrit_Preparation_Guide.pdf",
+      featured: true,
+    },
+    {
+      id: "res_03",
+      title: "Conservation No-Till Farming on Black Cotton Vertisols",
+      marathiTitle: "काळी कसदार जमिनीत मशागत विरहित (No-Till) शाश्वत शेती",
+      category: "no_till_farming",
+      summary: "How to eliminate deep plowing on cracking vertisol soils. Explains stubble retention, roller-crimping cover crops, preventing hard-pan formation, and cutting soil evaporation by up to 45%.",
+      readTimeMinutes: 7,
+      author: "ICAR - Central Research Institute for Dryland Agriculture",
+      pdfGuideUrl: "/docs/No_Till_Conservation_Agriculture.pdf",
+      featured: true,
+    },
+    {
+      id: "res_04",
+      title: "Botanical Pest Formulations: Neemastra, Brahmastra & Agniastra Protocols",
+      marathiTitle: "वनस्पतीजन्य कीटकनाशके: निमास्त्र, ब्रह्मास्त्र व अग्नीअस्त्र बनवणे",
+      category: "pest_management",
+      summary: "Non-toxic organic pest repellents crafted from local medicinal leaves. Protocols for controlling sucking pests (thrips, aphids) and leaf-eating bollworms without synthetic organophosphates.",
+      readTimeMinutes: 5,
+      author: "Maharashtra State Organic Farming Mission",
+      pdfGuideUrl: "/docs/Botanical_Formulations_Master.pdf",
+      featured: false,
+    },
+    {
+      id: "res_05",
+      title: "Living Soil Food Web: Building Soil Organic Carbon Past 1.25%",
+      marathiTitle: "सजीव माती परिसंस्था: सेंद्रिय कर्ब १.२५% च्या पुढे वाढवणे",
+      category: "soil_management",
+      summary: "Deep dive into mycorrhizal networks, earthworm cast aggregates, green manuring with Dhaincha/Sunn hemp, and unlocking bound phosphorus using native bio-fertilizer strains.",
+      readTimeMinutes: 9,
+      author: "Dr. V. G. Kulkarni (Senior Soil Microbiologist)",
+      pdfGuideUrl: "/docs/Living_Soil_Organic_Carbon.pdf",
+      featured: false,
+    },
+    {
+      id: "res_06",
+      title: "Smart Water Conservation: Drip Mulch Synergy in Rain-Deficit Zones",
+      marathiTitle: "पाणी बचत: ठिबक सिंचन व सेंद्रिय आच्छादन (Mulching) तंत्र",
+      category: "water_conservation",
+      summary: "Techniques for combining organic residue mulching with low-pressure drip irrigation. Reduces irrigation frequency by 40% while preserving root-zone moisture buffers in drought-prone areas.",
+      readTimeMinutes: 6,
+      author: "Jain IrriTech Agronomy Cell",
+      pdfGuideUrl: "/docs/Water_Conservation_Mulch_Drip.pdf",
+      featured: false,
     },
   ],
 };

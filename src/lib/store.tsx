@@ -17,6 +17,13 @@ import {
   IrrigationScheduleRecord,
   IrrigationEventRecord,
   DeviceCommandRecord,
+  OrganicProgramRecord,
+  OrganicTransitionRecord,
+  FarmingPracticeRecord,
+  OrganicInputRecord,
+  InputApplicationRecord,
+  NoTillRecord,
+  AgriculturalResourceRecord,
 } from "@/db/seed-data";
 
 export type RoleType =
@@ -124,9 +131,20 @@ interface AppStateContextType {
   addIrrigationSchedule: (schedule: Omit<IrrigationScheduleRecord, "id">) => void;
   toggleIrrigationSchedule: (scheduleId: string, isActive?: boolean) => void;
   recordIrrigationEvent: (event: Omit<IrrigationEventRecord, "id">) => void;
+  // Phase 5: Organic Transition, No-Till & Inputs
+  registerOrganicTransition: (plan: Omit<OrganicTransitionRecord, "id">) => void;
+  updateTransitionStage: (
+    transitionId: string,
+    stage: OrganicTransitionRecord["currentStage"],
+    progressPct: number
+  ) => void;
+  logFarmingPractice: (practice: Omit<FarmingPracticeRecord, "id">) => void;
+  addOrganicInput: (input: Omit<OrganicInputRecord, "id">) => void;
+  recordInputApplication: (application: Omit<InputApplicationRecord, "id">) => void;
+  recordNoTillActivity: (record: Omit<NoTillRecord, "id">) => void;
 }
 
-const STORAGE_KEY = "mazhi_sheti_state_v4";
+const STORAGE_KEY = "mazhi_sheti_state_v5";
 const ONBOARDING_KEY = "mazhi_sheti_onboarding_v3";
 
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
@@ -768,6 +786,97 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  // ================= PHASE 5: ORGANIC TRANSITION, NO-TILL & INPUTS =================
+
+  const registerOrganicTransition = (plan: Omit<OrganicTransitionRecord, "id">) => {
+    const newRecord: OrganicTransitionRecord = {
+      ...plan,
+      id: `tr_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      organicTransitions: [newRecord, ...(data.organicTransitions || [])],
+    });
+  };
+
+  const updateTransitionStage = (
+    transitionId: string,
+    stage: OrganicTransitionRecord["currentStage"],
+    progressPct: number
+  ) => {
+    const updated = (data.organicTransitions || []).map((t) => {
+      if (t.id !== transitionId) return t;
+
+      // Strict validation: isCertified is NEVER auto-set to true
+      // It only becomes certified if approved through formal audit & progress is 100%
+      const newStatus =
+        progressPct >= 100
+          ? ("under_audit" as const)
+          : progressPct >= 65
+          ? ("in_conversion_c2" as const)
+          : progressPct >= 35
+          ? ("in_conversion_c1" as const)
+          : t.conversionStatus;
+
+      return {
+        ...t,
+        currentStage: stage,
+        progressPct,
+        conversionStatus: newStatus,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    saveState({
+      ...data,
+      organicTransitions: updated,
+    });
+  };
+
+  const logFarmingPractice = (practice: Omit<FarmingPracticeRecord, "id">) => {
+    const newPractice: FarmingPracticeRecord = {
+      ...practice,
+      id: `fp_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      farmingPractices: [newPractice, ...(data.farmingPractices || [])],
+    });
+  };
+
+  const addOrganicInput = (input: Omit<OrganicInputRecord, "id">) => {
+    const newInput: OrganicInputRecord = {
+      ...input,
+      id: `inp_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      organicInputs: [newInput, ...(data.organicInputs || [])],
+    });
+  };
+
+  const recordInputApplication = (application: Omit<InputApplicationRecord, "id">) => {
+    const newApp: InputApplicationRecord = {
+      ...application,
+      id: `ia_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      inputApplications: [newApp, ...(data.inputApplications || [])],
+    });
+  };
+
+  const recordNoTillActivity = (record: Omit<NoTillRecord, "id">) => {
+    const newRecord: NoTillRecord = {
+      ...record,
+      id: `ntr_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      noTillRecords: [newRecord, ...(data.noTillRecords || [])],
+    });
+  };
+
   return (
     <AppStateContext.Provider
       value={{
@@ -807,6 +916,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         addIrrigationSchedule,
         toggleIrrigationSchedule,
         recordIrrigationEvent,
+        registerOrganicTransition,
+        updateTransitionStage,
+        logFarmingPractice,
+        addOrganicInput,
+        recordInputApplication,
+        recordNoTillActivity,
       }}
     >
       {children}

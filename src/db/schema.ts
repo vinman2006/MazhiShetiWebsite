@@ -489,3 +489,124 @@ export const deviceCommands = pgTable("device_commands", {
   deviceAckPayload: text("device_ack_payload"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// =========================================================================
+// PHASE 5: CROP MANAGEMENT, ORGANIC TRANSITION, NO-TILL & SUSTAINABLE AGRI
+// =========================================================================
+
+// 31. Organic Certification Programs (NPOP, PGS-India, ZBNF Natural)
+export const organicPrograms = pgTable("organic_programs", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(), // "NPOP National Organic Program", "PGS-India Green / Organic"
+  marathiName: text("marathi_name").notNull(), // "राष्ट्रीय सेंद्रिय उत्पादन कार्यक्रम"
+  certifyingBody: text("certifying_body").notNull(), // "APEDA / Regional Council"
+  conversionPeriodMonths: integer("conversion_period_months").default(36).notNull(), // 36 months for annual crops
+  standardGuidelines: text("standard_guidelines").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 32. Organic Transition Records (Field-by-field multi-year conversion tracker)
+export const organicTransitionRecords = pgTable("organic_transition_records", {
+  id: text("id").primaryKey(),
+  farmerId: text("farmer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  farmId: text("farm_id").references(() => farms.id, { onDelete: "cascade" }).notNull(),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "cascade" }).notNull(),
+  programId: text("program_id").references(() => organicPrograms.id, { onDelete: "set null" }),
+  registrationDate: text("registration_date").notNull(),
+  targetCertificationDate: text("target_certification_date").notNull(),
+  currentStage: text("current_stage").default("initial_assessment").notNull(), // 'initial_assessment' | 'soil_assessment' | 'transition_planning' | 'input_adoption' | 'soil_improvement' | 'crop_monitoring' | 'documentation' | 'certification_prep'
+  conversionStatus: text("conversion_status").default("in_conversion_c1").notNull(), // 'in_conversion_c1' | 'in_conversion_c2' | 'in_conversion_c3' | 'under_audit' | 'certified_verified'
+  progressPct: integer("progress_pct").default(15).notNull(), // 0 - 100
+  inspectorAgency: text("inspector_agency"), // "Aditi Organic Certifications / Maharashtra Council"
+  auditNotes: text("audit_notes"),
+  baselineChemicalNpkKg: numeric("baseline_chemical_npk_kg").default("150").notNull(),
+  currentChemicalNpkKg: numeric("current_chemical_npk_kg").default("0").notNull(),
+  isCertified: boolean("is_certified").default(false).notNull(), // Strict: Never auto-certified without verified audit
+  lastAuditDate: text("last_audit_date"),
+  nextAuditDate: text("next_audit_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 33. Farming Practices History Table (Baseline & ongoing chemical/organic transition tracking)
+export const farmingPractices = pgTable("farming_practices", {
+  id: text("id").primaryKey(),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "cascade" }).notNull(),
+  transitionRecordId: text("transition_record_id").references(() => organicTransitionRecords.id, { onDelete: "set null" }),
+  seasonYear: text("season_year").notNull(), // "Kharif 2026", "Rabi 2025"
+  practiceType: text("practice_type").notNull(), // 'synthetic_conventional' | 'integrated_ipm' | 'transitioning_organic' | 'certified_organic' | 'natural_zbnf'
+  chemicalFertilizerUsedKg: numeric("chemical_fertilizer_used_kg").default("0"),
+  chemicalPesticidesUsedLiters: numeric("chemical_pesticides_used_liters").default("0"),
+  bioInputsAdopted: text("bio_inputs_adopted"), // "Jeev Amrit, Trichoderma, Vermicompost"
+  soilConservationMethods: text("soil_conservation_methods"), // "Mulching, Contour Bunding"
+  notes: text("notes"),
+  recordedDate: text("recorded_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 34. Organic Inputs Master Catalog (Composts, biofertilizers, botanical pest concoctions)
+export const organicInputs = pgTable("organic_inputs", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(), // "Jeev Amrit (जीवामृत)", "Vermicompost (गांडूळ खत)", "Neemastra (निमास्त्र)", "Trichoderma Viride"
+  marathiName: text("marathi_name").notNull(),
+  category: text("category").notNull(), // 'compost' | 'vermicompost' | 'biofertilizer' | 'organic_manure' | 'botanical_pest_control' | 'green_manure' | 'cover_crop'
+  preparationMethod: text("preparation_method"),
+  composition: text("composition"),
+  primaryNutrientsOrTarget: text("primary_nutrients_or_target"), // "Bio-nitrogen fixation", "Sucking pest control", "Microbial booster"
+  applicationGuidelines: text("application_guidelines"),
+  isFarmPrepared: boolean("is_farm_prepared").default(true).notNull(),
+  standardDosagePerAcre: text("standard_dosage_per_acre").notNull(),
+  certificationComplianceStatus: text("certification_compliance_status").default("allowed_under_npop").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 35. Organic Input Applications Table (Field application log)
+export const inputApplications = pgTable("input_applications", {
+  id: text("id").primaryKey(),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "cascade" }).notNull(),
+  transitionRecordId: text("transition_record_id").references(() => organicTransitionRecords.id, { onDelete: "set null" }),
+  organicInputId: text("organic_input_id").references(() => organicInputs.id, { onDelete: "set null" }),
+  inputName: text("input_name").notNull(),
+  category: text("category").notNull(),
+  quantity: numeric("quantity").notNull(),
+  unit: text("unit").notNull(), // 'kg' | 'liters' | 'tonnes' | 'bags'
+  applicationMethod: text("application_method").notNull(), // 'broadcasting' | 'drip_fertigation' | 'foliar_spray' | 'soil_drenching' | 'seed_treatment'
+  appliedDate: text("applied_date").notNull(),
+  costIncurred: numeric("cost_incurred").default("0"),
+  batchLotNumber: text("batch_lot_number"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 36. No-Till Farming Records (Conservation agriculture, residue mulching & soil disturbance logs)
+export const noTillRecords = pgTable("no_till_records", {
+  id: text("id").primaryKey(),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "cascade" }).notNull(),
+  seasonYear: text("season_year").notNull(),
+  suitabilityScore: integer("suitability_score").default(85).notNull(), // 0 - 100
+  residueType: text("residue_type").notNull(), // 'cotton_stalk_mulch' | 'soybean_stubble' | 'paddy_straw' | 'dhaincha_cover'
+  residueCoveragePct: integer("residue_coverage_pct").default(75).notNull(), // % surface covered
+  coverCropPlanted: text("cover_crop_planted").default("Sunn hemp (ताग)"),
+  soilDisturbanceDepthCm: integer("soil_disturbance_depth_cm").default(0).notNull(), // 0 cm for strict zero-till
+  moistureRetentionScore: integer("moisture_retention_score").default(90).notNull(),
+  weedSuppressionMethod: text("weed_suppression_method").default("dense_mulch_roller"), // 'dense_mulch_roller' | 'cover_crop_allelopathy' | 'manual_slashing'
+  notes: text("notes"),
+  recordedDate: text("recorded_date").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 37. Agricultural Knowledge Resources (Educational articles, guides, best practices)
+export const agriculturalResources = pgTable("agricultural_resources", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  marathiTitle: text("marathi_title").notNull(),
+  category: text("category").notNull(), // 'organic_farming' | 'soil_management' | 'crop_planning' | 'water_conservation' | 'pest_management' | 'no_till_farming' | 'sustainable_agriculture'
+  summary: text("summary").notNull(),
+  readTimeMinutes: integer("read_time_minutes").default(5).notNull(),
+  author: text("author").notNull(),
+  pdfGuideUrl: text("pdf_guide_url"),
+  contentHtmlOrMarkdown: text("content_html_or_markdown"),
+  featured: boolean("featured").default(false).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

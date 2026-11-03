@@ -18,6 +18,7 @@ import {
   Landmark,
   FlaskConical,
   Cpu,
+  Leaf,
   FileText,
   PlusCircle,
   Download,
@@ -113,8 +114,9 @@ export default function SoilHealthPage() {
   const navItems: NavItem[] = [
     { label: "Dashboard Overview", href: "/dashboard/farmer", icon: LayoutDashboard },
     { label: "My Farm & Fields", href: "/dashboard/farmer/my-farm", icon: Trees, badge: `${data.farms.length}` },
-    { label: "Soil Health & Lab", href: "/dashboard/farmer/soil-health", icon: FlaskConical, badge: "Phase 4" },
+    { label: "Soil Health & Lab", href: "/dashboard/farmer/soil-health", icon: FlaskConical },
     { label: "Smart Devices & Valves", href: "/dashboard/farmer/devices", icon: Cpu, badge: `${data.devices?.length || 5}` },
+    { label: "Sustainable & Organic", href: "/dashboard/farmer/organic", icon: Leaf, badge: "Phase 5" },
     { label: "Deep Root Telemetry", href: "/sensors", icon: Activity, badge: "Live" },
     { label: "Produce Mandi", href: "/marketplace", icon: ShoppingBag },
     { label: "Machinery Fleet", href: "/rentals", icon: Wrench },
