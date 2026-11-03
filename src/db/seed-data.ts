@@ -480,6 +480,161 @@ export interface ServiceBookingRecord {
   createdAt: string;
 }
 
+// =========================================================================
+// PHASE 7 INTERFACES: PRODUCE MARKETPLACE, BUYER PROCUREMENT & ESCROW
+// =========================================================================
+
+export interface ProduceListingRecord {
+  id: string;
+  sellerId: string;
+  farmerName: string;
+  farmerPhone: string;
+  cropName: string;
+  variety: string;
+  category:
+    | "grains"
+    | "pulses"
+    | "oilseeds"
+    | "vegetables"
+    | "fruits"
+    | "spices"
+    | "cotton_fiber"
+    | "organic";
+  quantity: number;
+  unit: "Quintals" | "Kg" | "Tons" | "Crates" | "Bags";
+  pricePerUnit: number; // Farmer asking price
+  mandiBenchmarkPrice?: number; // Government APMC benchmark MSP
+  minimumOrderQuantity: number;
+  qualityGrade:
+    | "Grade A+ (Premium Export)"
+    | "Grade A (Export Ready)"
+    | "Grade A (Commercial)"
+    | "Grade B (Standard)"
+    | "Organic Certified";
+  harvestDate: string;
+  storageCondition: string;
+  description: string;
+  locationDistrict: string;
+  locationTaluka: string;
+  locationVillage: string;
+  farmGateAddress: string;
+  primaryImageUrl: string;
+  isOrganicCertified: boolean;
+  availabilityStatus: "available" | "under_negotiation" | "sold_out" | "in_harvest";
+  viewsCount?: number;
+  createdAt: string;
+}
+
+export interface PurchaseOrderRecord {
+  id: string;
+  listingId: string;
+  farmerId: string;
+  farmerName: string;
+  farmerPhone: string;
+  buyerId: string;
+  buyerName: string;
+  buyerPhone: string;
+  cropName: string;
+  variety: string;
+  orderQuantity: number;
+  unit: string;
+  unitPrice: number;
+  totalAmount: number;
+  orderStatus:
+    | "requested"
+    | "confirmed"
+    | "processing"
+    | "dispatched"
+    | "in_transit"
+    | "delivered"
+    | "completed"
+    | "cancelled"
+    | "rejected";
+  paymentStatus:
+    | "pending"
+    | "escrow_locked"
+    | "released_to_farmer"
+    | "refunded"
+    | "failed";
+  escrowTransactionId?: string;
+  deliveryMethod:
+    | "farm_gate_pickup"
+    | "buyer_logistics"
+    | "fpo_consolidated"
+    | "express_cold_chain";
+  deliveryAddress: string;
+  scheduledDeliveryDate: string;
+  specialInstructions?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PaymentTransactionRecord {
+  id: string;
+  orderId: string;
+  buyerId: string;
+  farmerId: string;
+  amount: number;
+  currency: string;
+  paymentGateway: "razorpay_escrow" | "direct_upi_neft" | "apmc_mandi_settlement";
+  gatewayPaymentId?: string;
+  gatewaySignature?: string;
+  status:
+    | "initiated"
+    | "escrow_authorized"
+    | "verified"
+    | "disbursed_to_farmer"
+    | "refund_processed"
+    | "failed";
+  verificationMethod: string;
+  refundReference?: string;
+  createdAt: string;
+}
+
+export interface DeliveryRecordItem {
+  id: string;
+  orderId: string;
+  transporterName: string;
+  vehicleNumber: string;
+  driverName: string;
+  driverPhone: string;
+  trackingNumberOrEwb?: string;
+  pickupDate: string;
+  estimatedArrival: string;
+  actualDeliveryDate?: string;
+  dispatchGatePass?: string;
+  deliveryProofUrl?: string;
+  status:
+    | "scheduled"
+    | "loaded_at_farm"
+    | "in_transit"
+    | "arrived_at_destination"
+    | "quality_inspected"
+    | "accepted"
+    | "rejected";
+  createdAt: string;
+}
+
+export interface BuyerProfileRecord {
+  id: string;
+  userId: string;
+  companyOrTraderName: string;
+  buyerType:
+    | "wholesaler"
+    | "food_processor"
+    | "retail_chain"
+    | "exporter"
+    | "fpo_buyer"
+    | "individual_trader";
+  apmcLicenseNumber: string;
+  gstinNumber: string;
+  contactPhone: string;
+  deliveryWarehouseAddress: string;
+  isVerifiedTrader: boolean;
+  trustScore: number;
+  procurementCapacityTons: number;
+}
+
 export interface SeedData {
   users: Array<{
     id: string;
@@ -606,6 +761,12 @@ export interface SeedData {
   inputApplications: InputApplicationRecord[];
   noTillRecords: NoTillRecord[];
   agriculturalResources: AgriculturalResourceRecord[];
+  // Phase 7: Produce Marketplace & Buyer Procurement
+  produceListings: ProduceListingRecord[];
+  purchaseOrders: PurchaseOrderRecord[];
+  buyerProfiles: BuyerProfileRecord[];
+  paymentTransactions: PaymentTransactionRecord[];
+  deliveryRecords: DeliveryRecordItem[];
 }
 
 export const initialSeedData: SeedData = {
@@ -2271,6 +2432,375 @@ export const initialSeedData: SeedData = {
       author: "Jain IrriTech Agronomy Cell",
       pdfGuideUrl: "/docs/Water_Conservation_Mulch_Drip.pdf",
       featured: false,
+    },
+  ],
+  // Phase 7: Agricultural Marketplace, Buyer Procurement & Escrow
+  produceListings: [
+    {
+      id: "prod_01",
+      sellerId: "usr_farmer_01",
+      farmerName: "Rameshwar Sadashiv Shinde",
+      farmerPhone: "+91 98223 41092",
+      cropName: "Organic Certified Soybean",
+      variety: "JS 335 (High Protein)",
+      category: "oilseeds",
+      quantity: 120,
+      unit: "Quintals",
+      pricePerUnit: 5400,
+      mandiBenchmarkPrice: 4892,
+      minimumOrderQuantity: 10,
+      qualityGrade: "Organic Certified",
+      harvestDate: "2026-10-24",
+      storageCondition: "Dry moisture-controlled aerated warehouse (Moisture < 10%)",
+      description: "Naturally grown non-GMO soybean cultivated with vermicompost and Jeevamrutha under NPOP guidelines. Hand-sorted, high oil and protein content, zero synthetic residue.",
+      locationDistrict: "Wardha",
+      locationTaluka: "Karanja (Lad)",
+      locationVillage: "Ashti",
+      farmGateAddress: "Gat No. 142, Wardha Road, Ashti Village",
+      primaryImageUrl: "https://images.unsplash.com/photo-1599818816946-b3cd8ae243d0?auto=format&fit=crop&q=80&w=600",
+      isOrganicCertified: true,
+      availabilityStatus: "available",
+      viewsCount: 142,
+      createdAt: "2026-10-25 10:30",
+    },
+    {
+      id: "prod_02",
+      sellerId: "usr_farmer_01",
+      farmerName: "Rameshwar Sadashiv Shinde",
+      farmerPhone: "+91 98223 41092",
+      cropName: "Long-Staple BT Cotton",
+      variety: "Bollgard II RCH-659",
+      category: "cotton_fiber",
+      quantity: 85,
+      unit: "Quintals",
+      pricePerUnit: 7650,
+      mandiBenchmarkPrice: 7121,
+      minimumOrderQuantity: 15,
+      qualityGrade: "Grade A (Export Ready)",
+      harvestDate: "2026-10-28",
+      storageCondition: "Dry ginning bale packhouse with poly-wrap protection",
+      description: "Premium 29.5mm long staple fiber with high tensile strength (28.5 g/tex) and low micronaire (3.8 - 4.2). Clean white lint harvested before dew, trash content less than 2.5%.",
+      locationDistrict: "Wardha",
+      locationTaluka: "Karanja (Lad)",
+      locationVillage: "Ashti",
+      farmGateAddress: "Gat No. 144, Cotton Ginning Yard, Ashti",
+      primaryImageUrl: "https://images.unsplash.com/photo-1607623814075-e51df1bdc82f?auto=format&fit=crop&q=80&w=600",
+      isOrganicCertified: false,
+      availabilityStatus: "available",
+      viewsCount: 219,
+      createdAt: "2026-10-29 14:15",
+    },
+    {
+      id: "prod_03",
+      sellerId: "usr_farmer_02",
+      farmerName: "Dnyaneshwar Babanrao Patil",
+      farmerPhone: "+91 98221 88301",
+      cropName: "Nashik Export Red Onion",
+      variety: "Phule Samarth (Gavran Special)",
+      category: "vegetables",
+      quantity: 250,
+      unit: "Quintals",
+      pricePerUnit: 2850,
+      mandiBenchmarkPrice: 2400,
+      minimumOrderQuantity: 25,
+      qualityGrade: "Grade A+ (Premium Export)",
+      harvestDate: "2026-10-18",
+      storageCondition: "Natural bamboo ventilated Kanda Chawl storage",
+      description: "Medium to large 55mm+ uniform red globes with thin tight neck and deep scarlet outer skin. High pungency, long shelf life of 4+ months without sprouting. Ideal for Middle East and SE Asia export.",
+      locationDistrict: "Nashik",
+      locationTaluka: "Lasalgaon",
+      locationVillage: "Niphad",
+      farmGateAddress: "Mandi Road, Niphad Agro Center, Lasalgaon",
+      primaryImageUrl: "https://images.unsplash.com/photo-1618512496248-a07fe83aa8cb?auto=format&fit=crop&q=80&w=600",
+      isOrganicCertified: false,
+      availabilityStatus: "available",
+      viewsCount: 480,
+      createdAt: "2026-10-20 09:00",
+    },
+    {
+      id: "prod_04",
+      sellerId: "usr_farmer_03",
+      farmerName: "Vinayak Govind Sawant",
+      farmerPhone: "+91 98234 55110",
+      cropName: "Ratnagiri GI Alphonso Mangoes",
+      variety: "Konkan Hapus (Geographical Indication Registered)",
+      category: "fruits",
+      quantity: 450,
+      unit: "Crates",
+      pricePerUnit: 1650,
+      mandiBenchmarkPrice: 1300,
+      minimumOrderQuantity: 10,
+      qualityGrade: "Grade A+ (Premium Export)",
+      harvestDate: "2026-10-15",
+      storageCondition: "Naturally ripened in paddy straw crates; zero ethylene gas treatment",
+      description: "Authentic coastal Ratnagiri Alphonso mangoes with trademark aroma, saffron-orange pulp, and zero fiber. Export grade certified with APEDA traceability barcode on every wooden crate.",
+      locationDistrict: "Ratnagiri",
+      locationTaluka: "Devgad",
+      locationVillage: "Shirgaon",
+      farmGateAddress: "Sawant Mango Orchards, Coastal Highway, Shirgaon",
+      primaryImageUrl: "https://images.unsplash.com/photo-1553279768-865429fa0078?auto=format&fit=crop&q=80&w=600",
+      isOrganicCertified: true,
+      availabilityStatus: "available",
+      viewsCount: 610,
+      createdAt: "2026-10-16 11:20",
+    },
+    {
+      id: "prod_05",
+      sellerId: "usr_farmer_01",
+      farmerName: "Rameshwar Sadashiv Shinde",
+      farmerPhone: "+91 98223 41092",
+      cropName: "Vidarbha White Pigeon Pea (Tur Dal)",
+      variety: "BDN-711 (Phule Rajeshwari)",
+      category: "pulses",
+      quantity: 95,
+      unit: "Quintals",
+      pricePerUnit: 10800,
+      mandiBenchmarkPrice: 7550,
+      minimumOrderQuantity: 5,
+      qualityGrade: "Grade A (Commercial)",
+      harvestDate: "2026-10-26",
+      storageCondition: "Sun-dried in clean jute bags with neem leaf fumigation",
+      description: "Bold grain pigeon pea with quick cooking time, rich aroma, and high protein (22%). Hand-winnowed to remove foreign material; moisture strictly below 9.5%.",
+      locationDistrict: "Wardha",
+      locationTaluka: "Karanja (Lad)",
+      locationVillage: "Ashti",
+      farmGateAddress: "Gat No. 142, Ashti Village Gate",
+      primaryImageUrl: "https://images.unsplash.com/photo-1585994192700-4e50882e987c?auto=format&fit=crop&q=80&w=600",
+      isOrganicCertified: false,
+      availabilityStatus: "available",
+      viewsCount: 175,
+      createdAt: "2026-10-27 16:40",
+    },
+    {
+      id: "prod_06",
+      sellerId: "usr_farmer_04",
+      farmerName: "Balasaheb Thorat",
+      farmerPhone: "+91 98230 44901",
+      cropName: "Pusa Basmati 1121 Paddy Rice",
+      variety: "Pusa 1121 Extra Long Grain",
+      category: "grains",
+      quantity: 300,
+      unit: "Quintals",
+      pricePerUnit: 4150,
+      mandiBenchmarkPrice: 3600,
+      minimumOrderQuantity: 20,
+      qualityGrade: "Grade A+ (Premium Export)",
+      harvestDate: "2026-10-22",
+      storageCondition: "Concrete floor grain shed, moisture tested at 12%",
+      description: "Aromatic extra-long grain paddy with grain elongation ratio of 2.5x after boiling. Minimal broken kernel percentage, processed from river basin loamy soil.",
+      locationDistrict: "Kolhapur",
+      locationTaluka: "Shirol",
+      locationVillage: "Jaisingpur",
+      farmGateAddress: "Thorat Agro Farm, Krishna Canal Road, Jaisingpur",
+      primaryImageUrl: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=600",
+      isOrganicCertified: false,
+      availabilityStatus: "available",
+      viewsCount: 330,
+      createdAt: "2026-10-23 12:00",
+    },
+    {
+      id: "prod_07",
+      sellerId: "usr_farmer_05",
+      farmerName: "Chandrashekhar Bhoyar",
+      farmerPhone: "+91 98224 99120",
+      cropName: "GI-Tagged Nagpur Sweet Oranges",
+      variety: "Nagpur Mandarin (Santra)",
+      category: "fruits",
+      quantity: 600,
+      unit: "Crates",
+      pricePerUnit: 950,
+      mandiBenchmarkPrice: 780,
+      minimumOrderQuantity: 25,
+      qualityGrade: "Grade A (Commercial)",
+      harvestDate: "2026-10-29",
+      storageCondition: "Cold room precooling at 7°C, wax-coated for freshness",
+      description: "Juicy, thin-skinned citrus grown in basalt black soil with high natural sugar-to-acid ratio. Blemish-free fruit graded by electronic optical weight sorter.",
+      locationDistrict: "Nagpur",
+      locationTaluka: "Katol",
+      locationVillage: "Narkhed",
+      farmGateAddress: "Bhoyar Citrus Orchards, Katol-Narkhed State Highway",
+      primaryImageUrl: "https://images.unsplash.com/photo-1611080626919-7cf5a9dbab5b?auto=format&fit=crop&q=80&w=600",
+      isOrganicCertified: false,
+      availabilityStatus: "available",
+      viewsCount: 290,
+      createdAt: "2026-10-30 08:30",
+    },
+    {
+      id: "prod_08",
+      sellerId: "usr_farmer_06",
+      farmerName: "Prakash Jadhav",
+      farmerPhone: "+91 98231 66200",
+      cropName: "Kolhapuri Natural Jaggery Cubes (Gul)",
+      variety: "Organic Sugarcane Co-86032",
+      category: "organic",
+      quantity: 150,
+      unit: "Quintals",
+      pricePerUnit: 4900,
+      mandiBenchmarkPrice: 4200,
+      minimumOrderQuantity: 10,
+      qualityGrade: "Organic Certified",
+      harvestDate: "2026-10-20",
+      storageCondition: "Air-sealed moisture proof 10kg cartons with food-grade liner",
+      description: "Traditional Kolhapur jaggery prepared with natural okra plant juice clarifier. Zero chemical hydrosulphite, rich golden color, preserves natural iron and trace minerals.",
+      locationDistrict: "Kolhapur",
+      locationTaluka: "Karveer",
+      locationVillage: "Kagal",
+      farmGateAddress: "Shree Shahu Jaggery Yard, Kagal MIDC Road",
+      primaryImageUrl: "https://images.unsplash.com/photo-1606787366850-de6330128bfc?auto=format&fit=crop&q=80&w=600",
+      isOrganicCertified: true,
+      availabilityStatus: "available",
+      viewsCount: 410,
+      createdAt: "2026-10-21 15:00",
+    },
+  ],
+  buyerProfiles: [
+    {
+      id: "bp_01",
+      userId: "usr_buyer_01",
+      companyOrTraderName: "Mahavishnu Agro Commodities Pvt. Ltd.",
+      buyerType: "wholesaler",
+      apmcLicenseNumber: "APMC/MUM/2021/8842",
+      gstinNumber: "27AABCM9124K1Z5",
+      contactPhone: "+91 98200 44123",
+      deliveryWarehouseAddress: "Sector 19, APMC Grain Market, Vashi, Navi Mumbai 400705",
+      isVerifiedTrader: true,
+      trustScore: 4.9,
+      procurementCapacityTons: 120,
+    },
+    {
+      id: "bp_02",
+      userId: "usr_buyer_02",
+      companyOrTraderName: "Sahyadri Mega Food Park & Exports",
+      buyerType: "food_processor",
+      apmcLicenseNumber: "APMC/NSK/2019/3310",
+      gstinNumber: "27AAACS1820L1ZP",
+      contactPhone: "+91 98220 99870",
+      deliveryWarehouseAddress: "Plot A-12, Agro Processing Zone, Dindori, Nashik 422202",
+      isVerifiedTrader: true,
+      trustScore: 5.0,
+      procurementCapacityTons: 350,
+    },
+  ],
+  purchaseOrders: [
+    {
+      id: "po_101",
+      listingId: "prod_01",
+      farmerId: "usr_farmer_01",
+      farmerName: "Rameshwar Sadashiv Shinde",
+      farmerPhone: "+91 98223 41092",
+      buyerId: "usr_buyer_01",
+      buyerName: "Mahavishnu Agro Commodities Pvt. Ltd.",
+      buyerPhone: "+91 98200 44123",
+      cropName: "Organic Certified Soybean",
+      variety: "JS 335 (High Protein)",
+      orderQuantity: 20,
+      unit: "Quintals",
+      unitPrice: 5400,
+      totalAmount: 108000,
+      orderStatus: "requested",
+      paymentStatus: "pending",
+      deliveryMethod: "buyer_logistics",
+      deliveryAddress: "Sector 19, APMC Grain Market, Vashi, Navi Mumbai",
+      scheduledDeliveryDate: "2026-11-08",
+      specialInstructions: "Moisture must be under 10%. Please provide NPOP certification copy with delivery challan.",
+      createdAt: "2026-11-02 11:30",
+      updatedAt: "2026-11-02 11:30",
+    },
+    {
+      id: "po_102",
+      listingId: "prod_03",
+      farmerId: "usr_farmer_02",
+      farmerName: "Dnyaneshwar Babanrao Patil",
+      farmerPhone: "+91 98221 88301",
+      buyerId: "usr_buyer_02",
+      buyerName: "Sahyadri Mega Food Park & Exports",
+      buyerPhone: "+91 98220 99870",
+      cropName: "Nashik Export Red Onion",
+      variety: "Phule Samarth (Gavran Special)",
+      orderQuantity: 40,
+      unit: "Quintals",
+      unitPrice: 2850,
+      totalAmount: 114000,
+      orderStatus: "in_transit",
+      paymentStatus: "escrow_locked",
+      escrowTransactionId: "txn_escrow_88201",
+      deliveryMethod: "express_cold_chain",
+      deliveryAddress: "Agro Processing Cold Store, Dindori, Nashik",
+      scheduledDeliveryDate: "2026-11-04",
+      specialInstructions: "Mesh bags packed in 25kg standard export sacks.",
+      createdAt: "2026-11-01 09:15",
+      updatedAt: "2026-11-02 16:00",
+    },
+    {
+      id: "po_103",
+      listingId: "prod_05",
+      farmerId: "usr_farmer_01",
+      farmerName: "Rameshwar Sadashiv Shinde",
+      farmerPhone: "+91 98223 41092",
+      buyerId: "usr_buyer_01",
+      buyerName: "Mahavishnu Agro Commodities Pvt. Ltd.",
+      buyerPhone: "+91 98200 44123",
+      cropName: "Vidarbha White Pigeon Pea (Tur Dal)",
+      variety: "BDN-711 (Phule Rajeshwari)",
+      orderQuantity: 15,
+      unit: "Quintals",
+      unitPrice: 10800,
+      totalAmount: 162000,
+      orderStatus: "completed",
+      paymentStatus: "released_to_farmer",
+      escrowTransactionId: "txn_escrow_77192",
+      deliveryMethod: "farm_gate_pickup",
+      deliveryAddress: "Vashi APMC Central Silos, Navi Mumbai",
+      scheduledDeliveryDate: "2026-10-31",
+      specialInstructions: "Quality inspected and verified at farm gate.",
+      createdAt: "2026-10-28 14:00",
+      updatedAt: "2026-10-31 18:30",
+    },
+  ],
+  paymentTransactions: [
+    {
+      id: "txn_escrow_88201",
+      orderId: "po_102",
+      buyerId: "usr_buyer_02",
+      farmerId: "usr_farmer_02",
+      amount: 114000,
+      currency: "INR",
+      paymentGateway: "razorpay_escrow",
+      gatewayPaymentId: "pay_Rzp9821389",
+      gatewaySignature: "sig_hmac_881920acb091f9",
+      status: "verified",
+      verificationMethod: "server_webhook_hmac",
+      createdAt: "2026-11-01 10:05",
+    },
+    {
+      id: "txn_escrow_77192",
+      orderId: "po_103",
+      buyerId: "usr_buyer_01",
+      farmerId: "usr_farmer_01",
+      amount: 162000,
+      currency: "INR",
+      paymentGateway: "razorpay_escrow",
+      gatewayPaymentId: "pay_Rzp1149201",
+      gatewaySignature: "sig_hmac_771920fca1028e",
+      status: "disbursed_to_farmer",
+      verificationMethod: "server_webhook_hmac",
+      createdAt: "2026-10-28 14:20",
+    },
+  ],
+  deliveryRecords: [
+    {
+      id: "del_88201",
+      orderId: "po_102",
+      transporterName: "Kisan Gati Shakti Cold Logistics",
+      vehicleNumber: "MH-15-EG-4402",
+      driverName: "Santosh Ramrao Jadhav",
+      driverPhone: "+91 98225 11099",
+      trackingNumberOrEwb: "EWB-2026-98124018",
+      pickupDate: "2026-11-02 14:00",
+      estimatedArrival: "2026-11-04 10:00",
+      dispatchGatePass: "GP-NSK-1092",
+      status: "in_transit",
+      createdAt: "2026-11-02 14:05",
     },
   ],
 };

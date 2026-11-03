@@ -49,11 +49,12 @@ export default function FarmerDashboard() {
     addCropObservation,
     addHarvestRecord,
     updateCropStage,
+    updateOrderStatus,
   } = useAppState();
 
   const [syncing, setSyncing] = useState(false);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "timeline" | "crops" | "observations" | "harvest"
+    "overview" | "timeline" | "crops" | "observations" | "harvest" | "orders"
   >("overview");
 
   // Farm activity modal
@@ -254,6 +255,7 @@ export default function FarmerDashboard() {
             { id: "crops", label: `Crops & Cycles (${cropCycles.length})` },
             { id: "observations", label: `Pest Observations (${observations.length})` },
             { id: "harvest", label: `Harvest Records (${harvestRecords.length})` },
+            { id: "orders", label: `Mandi Orders & Sell Offers (${(data.purchaseOrders || []).filter(o => o.farmerId === farmer.id).length})` },
           ].map((t) => (
             <button
               key={t.id}
@@ -675,6 +677,189 @@ export default function FarmerDashboard() {
                 ))}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ===================== MANDI ORDERS & SELL OFFERS TAB ===================== */}
+        {activeTab === "orders" && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-card border border-slate-200 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+                <div>
+                  <h3 className="text-lg font-black text-brand-text">Incoming Buyer Purchase Orders</h3>
+                  <p className="text-xs text-slate-500">
+                    Review wholesale procurement offers, accept contracts, coordinate transport and verify escrow disbursement.
+                  </p>
+                </div>
+                <Link href="/marketplace">
+                  <Button variant="accent" size="sm" leftIcon={<ShoppingBag className="w-4 h-4" />}>
+                    Publish New Harvest Lot
+                  </Button>
+                </Link>
+              </div>
+
+              {((data.purchaseOrders || []).filter((o) => o.farmerId === farmer.id).length === 0) ? (
+                <EmptyState
+                  title="No purchase orders for your farm yet"
+                  description="When wholesale buyers or millers place orders for your produce, they will appear here for your approval."
+                />
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {(data.purchaseOrders || [])
+                    .filter((o) => o.farmerId === farmer.id)
+                    .map((po) => (
+                      <div
+                        key={po.id}
+                        className="bg-slate-50 rounded-3xl p-6 border border-slate-200 space-y-4 flex flex-col justify-between"
+                      >
+                        <div className="space-y-3">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[10px] font-mono font-bold bg-white text-slate-600 px-2 py-0.5 rounded border border-slate-200">
+                                  {po.id}
+                                </span>
+                                <Badge variant="neutral">{po.variety}</Badge>
+                              </div>
+                              <h4 className="text-base font-extrabold text-brand-text">{po.cropName}</h4>
+                            </div>
+
+                            <Badge
+                              variant={
+                                po.orderStatus === "completed"
+                                  ? "success"
+                                  : po.orderStatus === "in_transit"
+                                  ? "lime"
+                                  : po.orderStatus === "confirmed"
+                                  ? "info"
+                                  : "warning"
+                              }
+                            >
+                              {po.orderStatus.toUpperCase()}
+                            </Badge>
+                          </div>
+
+                          <div className="bg-white p-3.5 rounded-2xl border border-slate-200/80 space-y-2 text-xs">
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Procuring Buyer:</span>
+                              <strong className="text-slate-800">{po.buyerName}</strong>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Buyer Contact:</span>
+                              <span className="font-mono text-emerald-700 font-semibold">{po.buyerPhone}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Order Quantity:</span>
+                              <span className="font-bold text-slate-800">
+                                {po.orderQuantity} {po.unit} @ ₹{po.unitPrice}/{po.unit}
+                              </span>
+                            </div>
+                            <div className="flex justify-between pt-1 border-t border-slate-100">
+                              <span className="font-bold text-slate-700">Contract Total:</span>
+                              <strong className="text-base font-black text-brand-dark font-mono">
+                                ₹{po.totalAmount.toLocaleString("en-IN")}
+                              </strong>
+                            </div>
+                          </div>
+
+                          <div className="text-xs text-slate-600 space-y-1">
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Delivery Destination:</span>
+                              <span className="truncate max-w-[200px] text-slate-700">{po.deliveryAddress}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-500">Scheduled Date:</span>
+                              <span className="font-medium text-slate-800">{po.scheduledDeliveryDate}</span>
+                            </div>
+                            <div className="flex justify-between items-center pt-1">
+                              <span className="text-slate-500">Payment Status:</span>
+                              <span className="font-bold text-emerald-800">
+                                {po.paymentStatus === "escrow_locked"
+                                  ? "✓ Funds Locked in Escrow"
+                                  : po.paymentStatus === "released_to_farmer"
+                                  ? "✓ Disbursed to Bank Account"
+                                  : "Pending Buyer Escrow"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Order Action Buttons */}
+                        <div className="pt-3 border-t border-slate-200/80 flex items-center gap-2">
+                          {po.orderStatus === "requested" && (
+                            <>
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => updateOrderStatus(po.id, "confirmed")}
+                              >
+                                Accept Order
+                              </Button>
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={() => updateOrderStatus(po.id, "rejected")}
+                              >
+                                Decline
+                              </Button>
+                            </>
+                          )}
+
+                          {po.orderStatus === "confirmed" && (
+                            <Button
+                              variant="accent"
+                              size="sm"
+                              className="w-full"
+                              onClick={() => updateOrderStatus(po.id, "in_transit")}
+                            >
+                              Dispatch Consignment (Start Transit)
+                            </Button>
+                          )}
+
+                          {po.orderStatus === "in_transit" && (
+                            <div className="w-full text-center py-2 text-xs font-bold text-blue-700 bg-blue-50 rounded-xl">
+                              🚚 In Transit to Buyer Warehouse
+                            </div>
+                          )}
+
+                          {po.orderStatus === "completed" && (
+                            <div className="w-full text-center py-2 text-xs font-bold text-emerald-700 bg-emerald-50 rounded-xl">
+                              ✓ Consignment Delivered & Payment Received
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
+
+            {/* Farmer's Active Sell Lots */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-card border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                <h4 className="text-base font-bold text-brand-text">Your Active Produce Listings on Wholesale Mandi</h4>
+                <Link href="/marketplace" className="text-xs font-bold text-emerald-700 hover:underline">
+                  View Public Mandi →
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {(data.produceListings || [])
+                  .filter((l) => l.sellerId === farmer.id)
+                  .map((lot) => (
+                    <div key={lot.id} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+                      <div className="flex justify-between items-center">
+                        <Badge variant="lime">{lot.qualityGrade}</Badge>
+                        <span className="font-mono text-slate-500 font-bold">{lot.quantity} {lot.unit}</span>
+                      </div>
+                      <h5 className="font-extrabold text-brand-text text-sm">{lot.cropName}</h5>
+                      <p className="text-slate-500">Asking Price: <strong className="text-emerald-800 font-mono font-black">₹{lot.pricePerUnit}/{lot.unit}</strong></p>
+                      <p className="text-slate-400 text-[11px]">Harvested: {lot.harvestDate}</p>
+                    </div>
+                  ))}
+              </div>
+            </div>
           </div>
         )}
 

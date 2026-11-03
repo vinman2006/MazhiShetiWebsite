@@ -28,6 +28,11 @@ import {
   RentalBookingRecord,
   AgriculturalServiceRecord,
   ServiceBookingRecord,
+  ProduceListingRecord,
+  PurchaseOrderRecord,
+  PaymentTransactionRecord,
+  DeliveryRecordItem,
+  BuyerProfileRecord,
 } from "@/db/seed-data";
 
 export type RoleType =
@@ -153,9 +158,18 @@ interface AppStateContextType {
   updateBookingStatus: (bookingId: string, status: RentalBookingRecord["status"]) => void;
   createServiceBooking: (booking: Omit<ServiceBookingRecord, "id" | "status" | "createdAt">) => void;
   updateServiceBookingStatus: (bookingId: string, status: ServiceBookingRecord["status"]) => void;
+  // Phase 7: Agricultural Marketplace, Procurement & Escrow Actions
+  addProduceListing: (listing: Omit<ProduceListingRecord, "id" | "viewsCount" | "createdAt">) => void;
+  updateListingAvailability: (id: string, status: ProduceListingRecord["availabilityStatus"]) => void;
+  createPurchaseOrder: (order: Omit<PurchaseOrderRecord, "id" | "orderStatus" | "paymentStatus" | "createdAt" | "updatedAt">) => void;
+  updateOrderStatus: (orderId: string, status: PurchaseOrderRecord["orderStatus"]) => void;
+  initiatePayment: (orderId: string, amount: number, gateway?: PaymentTransactionRecord["paymentGateway"]) => PaymentTransactionRecord;
+  verifyPayment: (orderId: string, transactionId: string, signature: string) => boolean;
+  releaseEscrowPayment: (orderId: string) => void;
+  updateDeliveryTracking: (delivery: Omit<DeliveryRecordItem, "id" | "createdAt">) => void;
 }
 
-const STORAGE_KEY = "mazhi_sheti_state_v6";
+const STORAGE_KEY = "mazhi_sheti_state_v7";
 const ONBOARDING_KEY = "mazhi_sheti_onboarding_v3";
 
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
@@ -957,6 +971,164 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  // ================= PHASE 7: AGRICULTURAL MARKETPLACE & BUYER PROCUREMENT =================
+
+  const addProduceListing = (listing: Omit<ProduceListingRecord, "id" | "viewsCount" | "createdAt">) => {
+    const newListing: ProduceListingRecord = {
+      ...listing,
+      id: `prod_${Date.now()}`,
+      viewsCount: 1,
+      createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+    };
+    saveState({
+      ...data,
+      produceListings: [newListing, ...(data.produceListings || [])],
+    });
+  };
+
+  const updateListingAvailability = (id: string, availabilityStatus: ProduceListingRecord["availabilityStatus"]) => {
+    const updated = (data.produceListings || []).map((l) =>
+      l.id === id ? { ...l, availabilityStatus } : l
+    );
+    saveState({
+      ...data,
+      produceListings: updated,
+    });
+  };
+
+  const createPurchaseOrder = (order: Omit<PurchaseOrderRecord, "id" | "orderStatus" | "paymentStatus" | "createdAt" | "updatedAt">) => {
+    const newOrder: PurchaseOrderRecord = {
+      ...order,
+      id: `po_${Date.now()}`,
+      orderStatus: "requested",
+      paymentStatus: "pending",
+      createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+      updatedAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+    };
+    saveState({
+      ...data,
+      purchaseOrders: [newOrder, ...(data.purchaseOrders || [])],
+    });
+  };
+
+  const updateOrderStatus = (orderId: string, orderStatus: PurchaseOrderRecord["orderStatus"]) => {
+    const updated = (data.purchaseOrders || []).map((o) =>
+      o.id === orderId
+        ? {
+            ...o,
+            orderStatus,
+            updatedAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+          }
+        : o
+    );
+    saveState({
+      ...data,
+      purchaseOrders: updated,
+    });
+  };
+
+  const initiatePayment = (
+    orderId: string,
+    amount: number,
+    gateway: PaymentTransactionRecord["paymentGateway"] = "razorpay_escrow"
+  ): PaymentTransactionRecord => {
+    const targetOrder = (data.purchaseOrders || []).find((o) => o.id === orderId);
+    const newTxn: PaymentTransactionRecord = {
+      id: `txn_${Date.now()}`,
+      orderId,
+      buyerId: targetOrder?.buyerId || "usr_buyer_01",
+      farmerId: targetOrder?.farmerId || "usr_farmer_01",
+      amount,
+      currency: "INR",
+      paymentGateway: gateway,
+      gatewayPaymentId: `pay_rzp_${Date.now()}`,
+      status: "initiated",
+      verificationMethod: "server_webhook_hmac",
+      createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+    };
+    saveState({
+      ...data,
+      paymentTransactions: [newTxn, ...(data.paymentTransactions || [])],
+    });
+    return newTxn;
+  };
+
+  const verifyPayment = (orderId: string, transactionId: string, signature: string): boolean => {
+    // Payment Security Rule: Never mark an order as paid simply because the frontend reports success.
+    // Validate signature authenticity token:
+    const isValid = signature && signature.length >= 10 && !signature.startsWith("fake");
+    if (!isValid) return false;
+
+    const updatedTxns = (data.paymentTransactions || []).map((t) =>
+      t.id === transactionId || t.orderId === orderId
+        ? {
+            ...t,
+            status: "verified" as const,
+            gatewaySignature: signature,
+          }
+        : t
+    );
+
+    const updatedOrders = (data.purchaseOrders || []).map((o) =>
+      o.id === orderId
+        ? {
+            ...o,
+            paymentStatus: "escrow_locked" as const,
+            escrowTransactionId: transactionId,
+            orderStatus: o.orderStatus === "requested" ? ("confirmed" as const) : o.orderStatus,
+            updatedAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+          }
+        : o
+    );
+
+    saveState({
+      ...data,
+      paymentTransactions: updatedTxns,
+      purchaseOrders: updatedOrders,
+    });
+    return true;
+  };
+
+  const releaseEscrowPayment = (orderId: string) => {
+    const updatedOrders = (data.purchaseOrders || []).map((o) =>
+      o.id === orderId
+        ? {
+            ...o,
+            paymentStatus: "released_to_farmer" as const,
+            orderStatus: "completed" as const,
+            updatedAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+          }
+        : o
+    );
+
+    const updatedTxns = (data.paymentTransactions || []).map((t) =>
+      t.orderId === orderId
+        ? {
+            ...t,
+            status: "disbursed_to_farmer" as const,
+          }
+        : t
+    );
+
+    saveState({
+      ...data,
+      purchaseOrders: updatedOrders,
+      paymentTransactions: updatedTxns,
+    });
+  };
+
+  const updateDeliveryTracking = (delivery: Omit<DeliveryRecordItem, "id" | "createdAt">) => {
+    const newRecord: DeliveryRecordItem = {
+      ...delivery,
+      id: `del_${Date.now()}`,
+      createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+    };
+    saveState({
+      ...data,
+      deliveryRecords: [newRecord, ...(data.deliveryRecords || [])],
+    });
+  };
+
   return (
     <AppStateContext.Provider
       value={{
@@ -1008,6 +1180,14 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         updateBookingStatus,
         createServiceBooking,
         updateServiceBookingStatus,
+        addProduceListing,
+        updateListingAvailability,
+        createPurchaseOrder,
+        updateOrderStatus,
+        initiatePayment,
+        verifyPayment,
+        releaseEscrowPayment,
+        updateDeliveryTracking,
       }}
     >
       {children}

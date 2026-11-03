@@ -726,3 +726,144 @@ export const serviceBookings = pgTable("service_bookings", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
+
+
+// =========================================================================
+// PHASE 7: AGRICULTURAL MARKETPLACE & DIRECT FARMER-TO-BUYER COMMERCE
+// =========================================================================
+
+// 45. Produce Listings (Farmer Sell Offers)
+export const produceListings = pgTable("produce_listings", {
+  id: text("id").primaryKey(),
+  sellerId: text("seller_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  farmerName: text("farmer_name").notNull(),
+  farmerPhone: text("farmer_phone").notNull(),
+  cropName: text("crop_name").notNull(), // e.g. "Soybean", "Sharbati Wheat", "Red Onion", "Nagpur Oranges"
+  variety: text("variety").notNull(), // e.g. "JS 335", "Phule Samarth", "BT Cotton"
+  category: text("category").notNull(), // 'grains' | 'pulses' | 'oilseeds' | 'vegetables' | 'fruits' | 'spices' | 'cotton_fiber' | 'organic'
+  quantity: numeric("quantity").notNull(), // Available quantity
+  unit: text("unit").default("Quintals").notNull(), // 'Quintals' | 'Kg' | 'Tons' | 'Crates' | 'Bags'
+  pricePerUnit: numeric("price_per_unit").notNull(), // Farmer asking price
+  minimumOrderQuantity: numeric("minimum_order_quantity").default("1").notNull(),
+  qualityGrade: text("quality_grade").default("Grade A (Export Ready)").notNull(), // 'Grade A+ (Premium)', 'Grade A (Export Ready)', 'Grade B (Standard Commercial)', 'Organic Certified'
+  harvestDate: text("harvest_date").notNull(),
+  storageCondition: text("storage_condition").default("Aerated Dry Silo / Warehouse").notNull(),
+  description: text("description").notNull(),
+  locationDistrict: text("location_district").notNull(),
+  locationTaluka: text("location_taluka").notNull(),
+  locationVillage: text("location_village").notNull(),
+  farmGateAddress: text("farm_gate_address").notNull(),
+  primaryImageUrl: text("primary_image_url").notNull(),
+  isOrganicCertified: boolean("is_organic_certified").default(false).notNull(),
+  availabilityStatus: text("availability_status").default("available").notNull(), // 'available' | 'under_negotiation' | 'sold_out' | 'in_harvest'
+  viewsCount: integer("views_count").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 46. Produce Gallery Images
+export const produceImages = pgTable("produce_images", {
+  id: text("id").primaryKey(),
+  listingId: text("listing_id").references(() => produceListings.id, { onDelete: "cascade" }).notNull(),
+  imageUrl: text("image_url").notNull(),
+  caption: text("caption"),
+  isPrimary: boolean("is_primary").default(false).notNull(),
+  displayOrder: integer("display_order").default(1),
+});
+
+// 47. Buyer Profiles & Institutional Verification
+export const buyerProfiles = pgTable("buyer_profiles", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }).notNull().unique(),
+  companyOrTraderName: text("company_or_trader_name").notNull(), // e.g. "Sahyadri Agro Processing Ltd."
+  buyerType: text("buyer_type").notNull().default("wholesaler"), // 'wholesaler' | 'food_processor' | 'retail_chain' | 'exporter' | 'fpo_buyer' | 'individual_trader'
+  apmcLicenseNumber: text("apmc_license_number"),
+  gstinNumber: text("gstin_number"),
+  panNumber: text("pan_number"),
+  contactPhone: text("contact_phone").notNull(),
+  billingAddress: text("billing_address").notNull(),
+  deliveryWarehouseAddress: text("delivery_warehouse_address").notNull(),
+  isVerifiedTrader: boolean("is_verified_trader").default(true).notNull(),
+  trustScore: numeric("trust_score").default("4.9"),
+  procurementCapacityTons: integer("procurement_capacity_tons").default(50),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 48. Purchase Orders (Buyer-to-Farmer Order Workflow)
+export const purchaseOrders = pgTable("purchase_orders", {
+  id: text("id").primaryKey(),
+  listingId: text("listing_id").references(() => produceListings.id, { onDelete: "cascade" }).notNull(),
+  farmerId: text("farmer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  farmerName: text("farmer_name").notNull(),
+  farmerPhone: text("farmer_phone").notNull(),
+  buyerId: text("buyer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  buyerName: text("buyer_name").notNull(),
+  buyerPhone: text("buyer_phone").notNull(),
+  cropName: text("crop_name").notNull(),
+  variety: text("variety").notNull(),
+  orderQuantity: numeric("order_quantity").notNull(),
+  unit: text("unit").notNull(),
+  unitPrice: numeric("unit_price").notNull(), // Locked-in unit price at order placement
+  totalAmount: numeric("total_amount").notNull(), // orderQuantity * unitPrice
+  orderStatus: text("order_status").default("requested").notNull(), // 'requested' | 'confirmed' | 'processing' | 'dispatched' | 'in_transit' | 'delivered' | 'completed' | 'cancelled' | 'rejected'
+  paymentStatus: text("payment_status").default("pending").notNull(), // 'pending' | 'escrow_locked' | 'released_to_farmer' | 'refunded' | 'failed'
+  escrowTransactionId: text("escrow_transaction_id"),
+  deliveryMethod: text("delivery_method").default("farm_gate_pickup").notNull(), // 'farm_gate_pickup' | 'buyer_logistics' | 'fpo_consolidated' | 'express_cold_chain'
+  deliveryAddress: text("delivery_address").notNull(),
+  scheduledDeliveryDate: text("scheduled_delivery_date").notNull(),
+  specialInstructions: text("special_instructions"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 49. Order Items (Itemized invoice lines)
+export const orderItems = pgTable("order_items", {
+  id: text("id").primaryKey(),
+  orderId: text("order_id").references(() => purchaseOrders.id, { onDelete: "cascade" }).notNull(),
+  listingId: text("listing_id").references(() => produceListings.id, { onDelete: "cascade" }).notNull(),
+  cropName: text("crop_name").notNull(),
+  variety: text("variety").notNull(),
+  grade: text("grade").notNull(),
+  unitQuantity: numeric("unit_quantity").notNull(),
+  unitOfMeasure: text("unit_of_measure").notNull(),
+  pricePerUnit: numeric("price_per_unit").notNull(),
+  subtotal: numeric("subtotal").notNull(),
+});
+
+// 50. Payment Transactions (Escrow, Verification, and Refund Tracking)
+export const paymentTransactions = pgTable("payment_transactions", {
+  id: text("id").primaryKey(),
+  orderId: text("order_id").references(() => purchaseOrders.id, { onDelete: "cascade" }).notNull(),
+  buyerId: text("buyer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  farmerId: text("farmer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  amount: numeric("amount").notNull(),
+  currency: text("currency").default("INR").notNull(),
+  paymentGateway: text("payment_gateway").default("razorpay_escrow").notNull(), // 'razorpay_escrow' | 'direct_upi_neft' | 'apmc_mandi_settlement'
+  gatewayPaymentId: text("gateway_payment_id"),
+  gatewaySignature: text("gateway_signature"),
+  status: text("status").default("initiated").notNull(), // 'initiated' | 'escrow_authorized' | 'verified' | 'disbursed_to_farmer' | 'refund_processed' | 'failed'
+  verificationMethod: text("verification_method").default("server_webhook_hmac").notNull(),
+  failureReason: text("failure_reason"),
+  refundReference: text("refund_reference"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 51. Delivery Records & Transporter Coordination
+export const deliveryRecords = pgTable("delivery_records", {
+  id: text("id").primaryKey(),
+  orderId: text("order_id").references(() => purchaseOrders.id, { onDelete: "cascade" }).notNull(),
+  transporterName: text("transporter_name").notNull(), // e.g. "Kisan Gati Shakti Logistics"
+  vehicleNumber: text("vehicle_number").notNull(), // e.g. "MH-32-T-9844"
+  driverName: text("driver_name").notNull(),
+  driverPhone: text("driver_phone").notNull(),
+  trackingNumberOrEwb: text("tracking_number_or_ewb"), // E-Way Bill Number
+  pickupDate: text("pickup_date").notNull(),
+  estimatedArrival: text("estimated_arrival").notNull(),
+  actualDeliveryDate: text("actual_delivery_date"),
+  dispatchGatePass: text("dispatch_gate_pass"),
+  inspectionRemarks: text("inspection_remarks"),
+  deliveryProofUrl: text("delivery_proof_url"),
+  status: text("status").default("scheduled").notNull(), // 'scheduled' | 'loaded_at_farm' | 'in_transit' | 'arrived_at_destination' | 'quality_inspected' | 'accepted' | 'rejected'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
