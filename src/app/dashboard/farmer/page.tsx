@@ -39,6 +39,9 @@ import {
   Clock,
   Bug,
   PackageCheck,
+  BarChart3,
+  CheckSquare,
+  Bell,
 } from "lucide-react";
 
 export default function FarmerDashboard() {
@@ -136,9 +139,14 @@ export default function FarmerDashboard() {
 
   const totalAcres = farms.reduce((acc, f) => acc + Number(f.totalAcres), 0);
   const activeCropsCount = new Set(fields.map((f) => f.currentCrop)).size;
+  const unreadNotifs = (data.notifications || []).filter((n) => !n.isRead).length;
+  const pendingTasksCount = (data.farmingTasks || []).filter((t) => t.status !== "completed").length;
 
   const navItems = [
     { label: "Dashboard Overview", href: "/dashboard/farmer", icon: LayoutDashboard },
+    { label: "Farm Analytics & Expenses", href: "/dashboard/farmer/analytics", icon: BarChart3, badge: "₹47.6k" },
+    { label: "Task Calendar", href: "/dashboard/farmer/tasks", icon: CheckSquare, badge: `${pendingTasksCount}` },
+    { label: "Notifications & Alerts", href: "/notifications", icon: Bell, badge: unreadNotifs > 0 ? `${unreadNotifs}` : undefined },
     { label: "My Farm & Fields", href: "/dashboard/farmer/my-farm", icon: Trees, badge: `${farms.length}` },
     { label: "Soil Health & Lab", href: "/dashboard/farmer/soil-health", icon: FlaskConical },
     { label: "Smart Devices & Valves", href: "/dashboard/farmer/devices", icon: Cpu, badge: `${data.devices?.length || 5}` },
@@ -386,76 +394,79 @@ export default function FarmerDashboard() {
                       Upcoming Farming Activities
                     </h3>
                   </div>
-                  <Link href="/dashboard/farmer/my-farm" className="text-xs font-bold text-brand-primary hover:underline">
-                    Manage Farm
+                  <Link href="/dashboard/farmer/tasks" className="text-xs font-bold text-brand-primary hover:underline">
+                    Manage Tasks ({pendingTasksCount})
                   </Link>
                 </div>
 
                 <div className="space-y-3">
-                  <div className="p-3.5 rounded-2xl bg-brand-light/40 border border-brand-light flex items-start gap-3">
-                    <Clock className="w-4 h-4 text-brand-dark flex-shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline">
-                        <h4 className="text-xs font-bold text-brand-dark">Foliar Spray 13:00:45</h4>
-                        <span className="text-[10px] font-bold text-slate-500">Tomorrow, 07:00 AM</span>
+                  {(data.farmingTasks || [])
+                    .filter((t) => t.status !== "completed")
+                    .slice(0, 3)
+                    .map((task) => (
+                      <div
+                        key={task.id}
+                        className={`p-3.5 rounded-2xl border flex items-start gap-3 ${
+                          task.priority === "urgent"
+                            ? "bg-rose-50/60 border-rose-200"
+                            : "bg-brand-light/40 border-brand-light"
+                        }`}
+                      >
+                        <Clock
+                          className={`w-4 h-4 flex-shrink-0 mt-0.5 ${
+                            task.priority === "urgent" ? "text-rose-600" : "text-brand-dark"
+                          }`}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-baseline">
+                            <h4 className="text-xs font-bold text-brand-dark truncate">{task.title}</h4>
+                            <span className="text-[10px] font-bold text-slate-500 font-mono whitespace-nowrap ml-2">
+                              Due: {task.dueDate}
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-slate-600 mt-0.5 line-clamp-1">
+                            {task.cropName} • {task.description || "Scheduled farm operation."}
+                          </p>
+                        </div>
                       </div>
-                      <p className="text-[11px] text-slate-600 mt-0.5">
-                        Field A (Cotton BG-II) • Apply 1% Potassium Nitrate solution for boll expansion.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-3.5 rounded-2xl bg-sky-50 border border-sky-100 flex items-start gap-3">
-                    <Droplets className="w-4 h-4 text-sky-700 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline">
-                        <h4 className="text-xs font-bold text-sky-900">Automated Drip Cycle</h4>
-                        <span className="text-[10px] font-bold text-slate-500">In 2 Days</span>
-                      </div>
-                      <p className="text-[11px] text-slate-600 mt-0.5">
-                        Field B (Soybean) & Field C (Turmeric) • 45-minute scheduled root hydration.
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-100 flex items-start gap-3">
-                    <Wrench className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline">
-                        <h4 className="text-xs font-bold text-amber-900">Drone Spraying Arrival</h4>
-                        <span className="text-[10px] font-bold text-slate-500">06 Nov 2026</span>
-                      </div>
-                      <p className="text-[11px] text-slate-600 mt-0.5">
-                        Mahalaxmi Custom Hiring DJI T40 spray drone booked for 8 acres.
-                      </p>
-                    </div>
-                  </div>
+                    ))}
                 </div>
               </div>
 
               {/* Right: Important Alerts */}
               <div className="lg:col-span-5 bg-white rounded-3xl p-6 shadow-card border border-slate-200 space-y-4">
-                <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-                  <AlertTriangle className="w-4 h-4 text-amber-600" />
-                  <h3 className="text-base font-extrabold text-brand-text">Important Alerts</h3>
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                    <h3 className="text-base font-extrabold text-brand-text">Important Alerts</h3>
+                  </div>
+                  <Link href="/notifications" className="text-xs font-bold text-brand-primary hover:underline">
+                    View All ({unreadNotifs})
+                  </Link>
                 </div>
 
                 <div className="space-y-3">
-                  <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 text-xs space-y-1">
-                    <Badge variant="warning" size="sm">Weather Advisory</Badge>
-                    <p className="font-bold text-amber-950 mt-1">Light precipitation expected in 3 days</p>
-                    <p className="text-slate-600 text-[11px]">
-                      Complete nitrogen foliar spraying before Friday afternoon to prevent rain wash-off.
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-xs space-y-1">
-                    <Badge variant="success" size="sm">Mandi Price Surge</Badge>
-                    <p className="font-bold text-emerald-950 mt-1">Cotton prices at ₹78.50/kg</p>
-                    <p className="text-slate-600 text-[11px]">
-                      Current Wardha & APMC Vashi benchmark +6% higher than MSP.
-                    </p>
-                  </div>
+                  {(data.notifications || []).slice(0, 2).map((n) => (
+                    <div
+                      key={n.id}
+                      className={`p-3.5 rounded-2xl border text-xs space-y-1 ${
+                        n.priority === "urgent"
+                          ? "bg-amber-50/80 border-amber-300"
+                          : "bg-slate-50 border-slate-200"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <Badge variant={n.priority === "urgent" ? "warning" : "neutral"} size="sm">
+                          {n.category.replace("_", " ").toUpperCase()}
+                        </Badge>
+                        <span className="text-[10px] text-slate-400 font-mono">{n.createdAt.slice(11, 16) || "Today"}</span>
+                      </div>
+                      <p className="font-bold text-slate-900 mt-1 line-clamp-1">{n.title}</p>
+                      <p className="text-slate-600 text-[11px] line-clamp-2">
+                        {n.message}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

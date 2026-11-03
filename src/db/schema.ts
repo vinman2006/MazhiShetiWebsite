@@ -1043,3 +1043,104 @@ export const aiFeedback = pgTable("ai_feedback", {
   category: text("category"), // 'accurate' | 'helpful' | 'inaccurate_crop_advice' | 'language_issue'
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+
+// =========================================================================
+// PHASE 10: FARM ANALYTICS, EXPENSES, NOTIFICATIONS & TASK MANAGEMENT
+// =========================================================================
+
+// 63. Expense Categories
+export const expenseCategories = pgTable("expense_categories", {
+  id: text("id").primaryKey(),
+  code: text("code").unique().notNull(), // 'seeds' | 'fertilizers' | 'labour' | 'equipment_rental' | 'irrigation' | 'transportation' | 'pest_control' | 'other'
+  name: text("name").notNull(),
+  nameMarathi: text("name_marathi").notNull(),
+  icon: text("icon").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 64. Farm Expenses
+export const farmExpenses = pgTable("farm_expenses", {
+  id: text("id").primaryKey(),
+  farmerId: text("farmer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  farmId: text("farm_id").references(() => farms.id, { onDelete: "cascade" }),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "set null" }),
+  cropCycleId: text("crop_cycle_id").references(() => cropCycles.id, { onDelete: "set null" }),
+  cropName: text("crop_name"), // e.g. "Cotton", "Soybean", "Turmeric"
+  categoryCode: text("category_code").notNull(), // 'seeds' | 'fertilizers' | 'labour' | 'equipment_rental' | 'irrigation' | 'transportation' | 'pest_control' | 'other'
+  expenseDate: text("expense_date").notNull(), // YYYY-MM-DD
+  amount: numeric("amount").notNull(), // in INR
+  quantity: numeric("quantity"),
+  unit: text("unit"), // 'bags', 'liters', 'days', 'hours', 'kg', 'trips'
+  unitCost: numeric("unit_cost"),
+  vendorName: text("vendor_name"),
+  receiptDocUrl: text("receipt_doc_url"),
+  paymentMode: text("payment_mode").default("cash").notNull(), // 'cash' | 'upi' | 'bank_transfer' | 'kcc_loan'
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 65. Notifications
+export const notifications = pgTable("notifications", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  category: text("category").notNull(), // 'booking_update' | 'marketplace_order' | 'loan_update' | 'irrigation_reminder' | 'farming_activity' | 'soil_alert' | 'ai_recommendation' | 'announcement'
+  title: text("title").notNull(),
+  titleMarathi: text("title_marathi").notNull(),
+  message: text("message").notNull(),
+  messageMarathi: text("message_marathi").notNull(),
+  priority: text("priority").default("normal").notNull(), // 'low' | 'normal' | 'high' | 'urgent'
+  isRead: boolean("is_read").default(false).notNull(),
+  readAt: text("read_at"),
+  actionUrl: text("action_url"),
+  actionLabel: text("action_label"),
+  metadata: text("metadata"), // JSON string
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 66. Notification Preferences
+export const notificationPreferences = pgTable("notification_preferences", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }).unique().notNull(),
+  emailEnabled: boolean("email_enabled").default(true).notNull(),
+  smsEnabled: boolean("sms_enabled").default(true).notNull(),
+  pushEnabled: boolean("push_enabled").default(true).notNull(),
+  whatsappEnabled: boolean("whatsapp_enabled").default(true).notNull(),
+  mutedCategories: text("muted_categories").default("[]").notNull(), // JSON array of category keys
+  quietHoursStart: text("quiet_hours_start").default("22:00").notNull(),
+  quietHoursEnd: text("quiet_hours_end").default("06:00").notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 67. Farming Tasks (Activity calendar & task manager)
+export const farmingTasks = pgTable("farming_tasks", {
+  id: text("id").primaryKey(),
+  farmerId: text("farmer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  farmId: text("farm_id").references(() => farms.id, { onDelete: "cascade" }),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "set null" }),
+  cropName: text("crop_name"),
+  title: text("title").notNull(),
+  titleMarathi: text("title_marathi").notNull(),
+  description: text("description"),
+  taskCategory: text("task_category").notNull(), // 'sowing' | 'weeding' | 'spraying' | 'irrigation' | 'fertilizer' | 'harvesting' | 'soil_testing' | 'maintenance'
+  priority: text("priority").default("medium").notNull(), // 'low' | 'medium' | 'high' | 'urgent'
+  status: text("status").default("pending").notNull(), // 'pending' | 'in_progress' | 'completed' | 'deferred' | 'cancelled'
+  dueDate: text("due_date").notNull(), // YYYY-MM-DD
+  completedAt: text("completed_at"),
+  estimatedLaborDays: numeric("estimated_labor_days"),
+  estimatedCost: numeric("estimated_cost"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 68. Task History (Audit trail of task state changes)
+export const taskHistory = pgTable("task_history", {
+  id: text("id").primaryKey(),
+  taskId: text("task_id").references(() => farmingTasks.id, { onDelete: "cascade" }).notNull(),
+  changedByUserId: text("changed_by_user_id").notNull(),
+  oldStatus: text("old_status").notNull(),
+  newStatus: text("new_status").notNull(),
+  remarks: text("remarks"),
+  recordedAt: timestamp("recorded_at").defaultNow().notNull(),
+});

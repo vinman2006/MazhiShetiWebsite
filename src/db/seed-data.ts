@@ -814,6 +814,100 @@ export interface AiFeedbackRecord {
   createdAt: string;
 }
 
+
+// =========================================================================
+// PHASE 10: ANALYTICS, EXPENSE TRACKING, NOTIFICATIONS & TASK MANAGEMENT
+// =========================================================================
+
+export interface ExpenseCategoryRecord {
+  id: string;
+  code: "seeds" | "fertilizers" | "labour" | "equipment_rental" | "irrigation" | "transportation" | "pest_control" | "other";
+  name: string;
+  nameMarathi: string;
+  icon: string;
+  description?: string;
+}
+
+export interface FarmExpenseRecord {
+  id: string;
+  farmerId: string;
+  farmId?: string;
+  fieldId?: string;
+  cropCycleId?: string;
+  cropName: string;
+  categoryCode: "seeds" | "fertilizers" | "labour" | "equipment_rental" | "irrigation" | "transportation" | "pest_control" | "other";
+  expenseDate: string;
+  amount: number;
+  quantity?: number;
+  unit?: string;
+  unitCost?: number;
+  vendorName?: string;
+  receiptDocUrl?: string;
+  paymentMode: "cash" | "upi" | "bank_transfer" | "kcc_loan";
+  notes?: string;
+  createdAt: string;
+}
+
+export interface NotificationRecord {
+  id: string;
+  userId: string;
+  category: "booking_update" | "marketplace_order" | "loan_update" | "irrigation_reminder" | "farming_activity" | "soil_alert" | "ai_recommendation" | "announcement";
+  title: string;
+  titleMarathi: string;
+  message: string;
+  messageMarathi: string;
+  priority: "low" | "normal" | "high" | "urgent";
+  isRead: boolean;
+  readAt?: string;
+  actionUrl?: string;
+  actionLabel?: string;
+  metadata?: Record<string, any>;
+  createdAt: string;
+}
+
+export interface NotificationPreferencesRecord {
+  id: string;
+  userId: string;
+  emailEnabled: boolean;
+  smsEnabled: boolean;
+  pushEnabled: boolean;
+  whatsappEnabled: boolean;
+  mutedCategories: string[];
+  quietHoursStart: string;
+  quietHoursEnd: string;
+  updatedAt: string;
+}
+
+export interface FarmingTaskRecord {
+  id: string;
+  farmerId: string;
+  farmId?: string;
+  fieldId?: string;
+  cropName?: string;
+  title: string;
+  titleMarathi: string;
+  description?: string;
+  taskCategory: "sowing" | "weeding" | "spraying" | "irrigation" | "fertilizer" | "harvesting" | "soil_testing" | "maintenance";
+  priority: "low" | "medium" | "high" | "urgent";
+  status: "pending" | "in_progress" | "completed" | "deferred" | "cancelled";
+  dueDate: string;
+  completedAt?: string;
+  estimatedLaborDays?: number;
+  estimatedCost?: number;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface TaskHistoryRecord {
+  id: string;
+  taskId: string;
+  changedByUserId: string;
+  oldStatus: string;
+  newStatus: string;
+  remarks?: string;
+  recordedAt: string;
+}
+
 export interface SeedData {
   users: Array<{
     id: string;
@@ -957,6 +1051,13 @@ export interface SeedData {
   aiMessages: AiMessageRecord[];
   aiRecommendations: AiRecommendationRecord[];
   aiFeedback: AiFeedbackRecord[];
+  // Phase 10: Farm Analytics, Expenses, Notifications & Task Management
+  expenseCategories: ExpenseCategoryRecord[];
+  farmExpenses: FarmExpenseRecord[];
+  notifications: NotificationRecord[];
+  notificationPreferences: NotificationPreferencesRecord[];
+  farmingTasks: FarmingTaskRecord[];
+  taskHistory: TaskHistoryRecord[];
 }
 
 export const initialSeedData: SeedData = {
@@ -3506,4 +3607,508 @@ export const initialSeedData: SeedData = {
       createdAt: "2026-11-02 16:35",
     },
   ],
+
+  // Phase 10: Expense Categories
+  expenseCategories: [
+    { id: "exp_cat_01", code: "seeds", name: "Seeds & Saplings", nameMarathi: "बियाणे व रोपे", icon: "Sprout", description: "Certified seeds, hybrid varieties, and nursery saplings" },
+    { id: "exp_cat_02", code: "fertilizers", name: "Fertilizers & Organic Inputs", nameMarathi: "खते व सेंद्रिय निविष्ठा", icon: "FlaskConical", description: "Jeevamrutha, compost, micronutrients, bio-fertilizers" },
+    { id: "exp_cat_03", code: "labour", name: "Farm Labour & Wages", nameMarathi: "शेतमजुरी व कामाचे वेतन", icon: "Users", description: "Sowing, weeding, intercultural, spraying, and harvesting labour" },
+    { id: "exp_cat_04", code: "equipment_rental", name: "Machinery & Equipment Rental", nameMarathi: "कृषी यंत्रे व अवजारे भाडे", icon: "Wrench", description: "Tractor plowing, rotavators, spray drones, harvesters" },
+    { id: "exp_cat_05", code: "irrigation", name: "Irrigation & Water Charges", nameMarathi: "सिंचन व पाणीपट्टी खर्च", icon: "Droplets", description: "Canal cess, pump electricity, drip maintenance, filter repairs" },
+    { id: "exp_cat_06", code: "transportation", name: "Logistics & Transport", nameMarathi: "वाहतूक व बाजार मालभाडे", icon: "Truck", description: "Transporting produce to APMC Mandi, FPO warehouse" },
+    { id: "exp_cat_07", code: "pest_control", name: "Biological Pest Management", nameMarathi: "जैविक कीड नियंत्रण", icon: "Bug", description: "Neem extracts, Trichoderma, pheromone traps, yellow sticky cards" },
+    { id: "exp_cat_08", code: "other", name: "Miscellaneous Farm Expenses", nameMarathi: "इतर संकीर्ण शेती खर्च", icon: "Receipt", description: "Soil testing fees, farm boundary fencing, packaging bags" },
+  ],
+
+  // Phase 10: Farm Expenses (Rameshwar Shinde usr_farmer_01)
+  farmExpenses: [
+    {
+      id: "exp_01",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      cropCycleId: "cycle_01",
+      cropName: "Cotton (कापूस)",
+      categoryCode: "seeds",
+      expenseDate: "2026-06-18",
+      amount: 5100,
+      quantity: 6,
+      unit: "packets",
+      unitCost: 850,
+      vendorName: "Mahalaxmi Krishi Seva Kendra, Karanja",
+      paymentMode: "upi",
+      notes: "Ajeet-155 BG-II certified bollworm resistant cotton seeds.",
+      createdAt: "2026-06-18 11:30",
+    },
+    {
+      id: "exp_02",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_02",
+      cropCycleId: "cycle_02",
+      cropName: "Soybean (सोयाबीन)",
+      categoryCode: "seeds",
+      expenseDate: "2026-06-20",
+      amount: 9600,
+      quantity: 3,
+      unit: "bags (30kg)",
+      unitCost: 3200,
+      vendorName: "Maharashtra State Seeds Corp (Mahabeej)",
+      paymentMode: "bank_transfer",
+      notes: "JS-335 foundation certified seed bags for 4.5 acres.",
+      createdAt: "2026-06-20 14:00",
+    },
+    {
+      id: "exp_03",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      cropCycleId: "cycle_01",
+      cropName: "Cotton (कापूस)",
+      categoryCode: "fertilizers",
+      expenseDate: "2026-07-10",
+      amount: 6800,
+      quantity: 400,
+      unit: "liters",
+      unitCost: 17,
+      vendorName: "Self-prepared On-farm (Gau-Mutra + Dung + Jaggery)",
+      paymentMode: "cash",
+      notes: "Organic Jeevamrutha preparation ingredients for venturi fertigation.",
+      createdAt: "2026-07-10 09:15",
+    },
+    {
+      id: "exp_04",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      cropCycleId: "cycle_01",
+      cropName: "Cotton (कापूस)",
+      categoryCode: "fertilizers",
+      expenseDate: "2026-08-05",
+      amount: 3400,
+      quantity: 2,
+      unit: "bags (25kg)",
+      unitCost: 1700,
+      vendorName: "Ashti Farmers Cooperative Society",
+      paymentMode: "upi",
+      notes: "Water Soluble Potash (13:00:45) for foliar boll enhancement.",
+      createdAt: "2026-08-05 16:45",
+    },
+    {
+      id: "exp_05",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      cropCycleId: "cycle_01",
+      cropName: "Cotton (कापूस)",
+      categoryCode: "labour",
+      expenseDate: "2026-07-28",
+      amount: 4200,
+      quantity: 12,
+      unit: "days",
+      unitCost: 350,
+      vendorName: "Karanji Village Labour Toli",
+      paymentMode: "cash",
+      notes: "First manual intercultural weeding in Plot A black clay soil.",
+      createdAt: "2026-07-28 18:30",
+    },
+    {
+      id: "exp_06",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_02",
+      cropCycleId: "cycle_02",
+      cropName: "Soybean (सोयाबीन)",
+      categoryCode: "labour",
+      expenseDate: "2026-08-15",
+      amount: 3000,
+      quantity: 6,
+      unit: "days",
+      unitCost: 500,
+      vendorName: "Local Irrigation Mechanics",
+      paymentMode: "cash",
+      notes: "Drip sub-main flush and inline emitter layout verification.",
+      createdAt: "2026-08-15 17:00",
+    },
+    {
+      id: "exp_07",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      cropCycleId: "cycle_01",
+      cropName: "Cotton (कापूस)",
+      categoryCode: "equipment_rental",
+      expenseDate: "2026-06-12",
+      amount: 5400,
+      quantity: 6,
+      unit: "hours",
+      unitCost: 900,
+      vendorName: "Mahalaxmi Custom Hiring Center",
+      paymentMode: "upi",
+      notes: "John Deere 5050D Deep MB Ploughing & Rotavator seedbed prep.",
+      createdAt: "2026-06-12 15:00",
+    },
+    {
+      id: "exp_08",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      cropCycleId: "cycle_01",
+      cropName: "Cotton (कापूस)",
+      categoryCode: "equipment_rental",
+      expenseDate: "2026-09-02",
+      amount: 3600,
+      quantity: 8,
+      unit: "acres",
+      unitCost: 450,
+      vendorName: "Kisan Drones Agro Services",
+      paymentMode: "upi",
+      notes: "DJI Agras T40 precision foliar spray for uniform coverage.",
+      createdAt: "2026-09-02 12:20",
+    },
+    {
+      id: "exp_09",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      cropCycleId: "cycle_01",
+      cropName: "Cotton (कापूस)",
+      categoryCode: "irrigation",
+      expenseDate: "2026-09-25",
+      amount: 2800,
+      quantity: 1,
+      unit: "quarterly bill",
+      unitCost: 2800,
+      vendorName: "MSEDCL Agricultural Feeder",
+      paymentMode: "kcc_loan",
+      notes: "Solar + grid subsidised power tariff for agricultural tube well.",
+      createdAt: "2026-09-25 10:15",
+    },
+    {
+      id: "exp_10",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_02",
+      cropCycleId: "cycle_02",
+      cropName: "Soybean (सोयाबीन)",
+      categoryCode: "transportation",
+      expenseDate: "2026-10-18",
+      amount: 1500,
+      quantity: 1,
+      unit: "trips",
+      unitCost: 1500,
+      vendorName: "Shree Ganesh Freight Carriers",
+      paymentMode: "cash",
+      notes: "Tata Ace loading freight for sample harvest batch to APMC Wardha.",
+      createdAt: "2026-10-18 16:30",
+    },
+    {
+      id: "exp_11",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      cropCycleId: "cycle_01",
+      cropName: "Cotton (कापूस)",
+      categoryCode: "pest_control",
+      expenseDate: "2026-09-14",
+      amount: 2200,
+      quantity: 5,
+      unit: "kg",
+      unitCost: 440,
+      vendorName: "PDKV Akola Bio-Control Laboratory",
+      paymentMode: "upi",
+      notes: "Verticillium lecanii + Trichoderma viride biological bio-agents.",
+      createdAt: "2026-09-14 13:45",
+    },
+    {
+      id: "exp_12",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_03",
+      cropCycleId: "cycle_03",
+      cropName: "Turmeric (हळद)",
+      categoryCode: "labour",
+      expenseDate: "2026-10-05",
+      amount: 2800,
+      quantity: 8,
+      unit: "days",
+      unitCost: 350,
+      vendorName: "Ashti Local Farm Hands",
+      paymentMode: "cash",
+      notes: "Earthing up soil around turmeric rhizome mounds in Plot C.",
+      createdAt: "2026-10-05 17:15",
+    },
+  ],
+
+  // Phase 10: Notifications
+  notifications: [
+    {
+      id: "notif_01",
+      userId: "usr_farmer_01",
+      category: "booking_update",
+      title: "Machinery Booking Confirmed: John Deere 5050D",
+      titleMarathi: "यंत्र नोंदणी मंजूर: जॉन डीअर ट्रॅक्टर ५ नोव्हेंबर",
+      message: "Mahalaxmi Custom Hiring Center has confirmed your tractor rental for 05 Nov 2026 (08:00 AM). Operator Sandip Patil assigned.",
+      messageMarathi: "महालक्ष्मी कस्टम हायरिंग सेंटरने तुमची ०५ नोव्हेंबर २०२६ ची नोंदणी स्वीकारली आहे. ऑपरेटर संदीप पाटील उपस्थित राहतील.",
+      priority: "high",
+      isRead: false,
+      actionUrl: "/rentals",
+      actionLabel: "View Booking Details",
+      createdAt: "2026-11-03 07:45",
+    },
+    {
+      id: "notif_02",
+      userId: "usr_farmer_01",
+      category: "marketplace_order",
+      title: "New Purchase Order: 1,200 kg Organic Cotton",
+      titleMarathi: "नवीन खरेदी मागणी: १,२०० किलो सेंद्रिय कापूस (₹७८.५०/किलो)",
+      message: "Buyer Mahyco Agri Procurement locked escrow for PO-2026-8801. Total order value: ₹94,200.",
+      messageMarathi: "खरेदीदार मायको अग्री प्रोक्योरमेंटने ₹९४,२०० चा एस्क्रो फंड जमा केला आहे. कृपया डिलिव्हरी शेड्युल तपासा.",
+      priority: "high",
+      isRead: false,
+      actionUrl: "/marketplace",
+      actionLabel: "Review Mandi Order",
+      createdAt: "2026-11-02 18:20",
+    },
+    {
+      id: "notif_03",
+      userId: "usr_farmer_01",
+      category: "loan_update",
+      title: "Kisan Credit Card (KCC) Sanctioned: ₹1,65,000",
+      titleMarathi: "किसान क्रेडिट कार्ड कर्ज मंजूर: ₹१,६५,००० (बँक ऑफ महाराष्ट्र)",
+      message: "Underwriting officer Rajesh Deshmukh approved your KCC Kharif limit with 4% interest subvention.",
+      messageMarathi: "बँक ऑफ महाराष्ट्रने तुमचे किसान क्रेडिट कार्ड मंजूर केले असून ४% सवलतीच्या व्याजदराचा लाभ दिला आहे.",
+      priority: "high",
+      isRead: true,
+      readAt: "2026-11-02 14:10",
+      actionUrl: "/finance",
+      actionLabel: "Download Sanction Letter",
+      createdAt: "2026-11-02 11:30",
+    },
+    {
+      id: "notif_04",
+      userId: "usr_farmer_01",
+      category: "soil_alert",
+      title: "Soil Moisture Below Threshold: 38% at Plot A",
+      titleMarathi: "माती आर्द्रता चेतावणी: प्लॉट A मधील ओलावा ३८% पर्यंत घसरला",
+      message: "Root-zone sentinel node MS-PRO-8841 dropped below the optimal 40% threshold. Automated drip trigger recommended.",
+      messageMarathi: "प्लॉट A मधील मातीतील ओलावा ३८% वर आला आहे. पिकाची पाण्याची गरज पूर्ण करण्यासाठी ठिबक सिंचन सुरू करा.",
+      priority: "urgent",
+      isRead: false,
+      actionUrl: "/dashboard/farmer/devices",
+      actionLabel: "Activate Smart Valve",
+      createdAt: "2026-11-03 06:15",
+    },
+    {
+      id: "notif_05",
+      userId: "usr_farmer_01",
+      category: "irrigation_reminder",
+      title: "Automated Drip Cycle Scheduled: Plot B & C",
+      titleMarathi: "ठिबक सिंचन वेळापत्रक: उद्या सकाळी ०६:३० वाजता",
+      message: "Scheduled 45-minute drip hydration scheduled for Plot B (Soybean) and Plot C (Turmeric).",
+      messageMarathi: "प्लॉट B आणि C साठी उद्या सकाळी ४५ मिनिटांचे नियोजित ठिबक सिंचन स्वयंचलितरित्या सुरू होईल.",
+      priority: "normal",
+      isRead: true,
+      readAt: "2026-11-02 19:40",
+      actionUrl: "/dashboard/farmer/devices",
+      actionLabel: "Check Irrigation Logs",
+      createdAt: "2026-11-02 17:00",
+    },
+    {
+      id: "notif_06",
+      userId: "usr_farmer_01",
+      category: "ai_recommendation",
+      title: "AI Agronomist: Foliar Potassium Nitrate Advisory",
+      titleMarathi: "AI शेती सल्लागार: कपाशीसाठी १३:००:४५ फवारणी शिफारस",
+      message: "Analysis of your Cotton Ajeet-155 BG-II bolls suggests foliar spray of 1% KNO3 to maximize fiber tensile strength.",
+      messageMarathi: "कपाशीच्या बोंड विकासासाठी १% पोटॅशियम नायट्रेट (१३:००:४५) ची फवारणी उपयुक्त ठरेल.",
+      priority: "normal",
+      isRead: false,
+      actionUrl: "/advisory",
+      actionLabel: "Open AI Crop Clinic",
+      createdAt: "2026-11-01 10:15",
+    },
+    {
+      id: "notif_07",
+      userId: "usr_farmer_01",
+      category: "announcement",
+      title: "KUSUM-B Solar Agricultural Pump Subsidy Open",
+      titleMarathi: "कुसुम-ब योजना: ५ एचपी सौर कृषी पंपावर ७५% अनुदान सुरू",
+      message: "Mahavitaran and MEDA portal opened applications for Vidarbha district farmers. Subsidy up to 75% for 3HP/5HP solar pumps.",
+      messageMarathi: "महावितरण व मेडा अंतर्गत सौर कृषी पंपासाठी ऑनलाईन अर्ज सुरू झाले आहेत. आजच अर्ज करा.",
+      priority: "normal",
+      isRead: true,
+      readAt: "2026-10-30 15:00",
+      actionUrl: "/finance",
+      actionLabel: "Explore Solar Schemes",
+      createdAt: "2026-10-30 09:00",
+    },
+    {
+      id: "notif_08",
+      userId: "usr_farmer_01",
+      category: "farming_activity",
+      title: "PDKV Soil Testing Report Uploaded",
+      titleMarathi: "माती आरोग्य पत्रिका उपलब्ध: सेंद्रिय कर्ब ०.६८% वाढले",
+      message: "Lab testing for Field A is complete. Available Nitrogen: 142 kg/ha, Organic Carbon: 0.68%, Soil Health Index: 88/100.",
+      messageMarathi: "फील्ड A चे माती परीक्षण पूर्ण झाले असून सेंद्रिय कर्ब ०.६८% पर्यंत सुधारले आहे.",
+      priority: "normal",
+      isRead: true,
+      readAt: "2026-10-29 11:20",
+      actionUrl: "/dashboard/farmer/soil-health",
+      actionLabel: "View Soil Health Card",
+      createdAt: "2026-10-29 10:00",
+    },
+  ],
+
+  // Phase 10: Notification Preferences
+  notificationPreferences: [
+    {
+      id: "pref_01",
+      userId: "usr_farmer_01",
+      emailEnabled: true,
+      smsEnabled: true,
+      pushEnabled: true,
+      whatsappEnabled: true,
+      mutedCategories: [],
+      quietHoursStart: "22:00",
+      quietHoursEnd: "06:00",
+      updatedAt: "2026-11-01 10:00",
+    },
+  ],
+
+  // Phase 10: Farming Tasks (Activity Calendar & Task Manager)
+  farmingTasks: [
+    {
+      id: "task_01",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      cropName: "Cotton (कापूस)",
+      title: "Foliar Spray of 13:00:45 on Cotton BG-II",
+      titleMarathi: "कपाशीवर १३:००:४५ ची पानांवर फवारणी",
+      description: "Spray 1% solution (100g in 10L water) during late afternoon to promote boll size and stop premature square dropping.",
+      taskCategory: "spraying",
+      priority: "high",
+      status: "pending",
+      dueDate: "2026-11-04",
+      estimatedLaborDays: 1,
+      estimatedCost: 800,
+      notes: "Ensure drone or backpack sprayer operates with hollow cone nozzles.",
+      createdAt: "2026-11-02 08:30",
+    },
+    {
+      id: "task_02",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      cropName: "Cotton (कापूस)",
+      title: "Turn on Drip Irrigation Zone 1 & 2",
+      titleMarathi: "झोन १ आणि २ मध्ये ठिबक सिंचन सुरू करणे",
+      description: "Sensor moisture reached 38%. Run drip lines for 45 minutes from Solar Borewell pump.",
+      taskCategory: "irrigation",
+      priority: "urgent",
+      status: "pending",
+      dueDate: "2026-11-04",
+      estimatedLaborDays: 0.5,
+      estimatedCost: 150,
+      notes: "Check sand filter backwash pressure before initiating flow.",
+      createdAt: "2026-11-03 06:20",
+    },
+    {
+      id: "task_03",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_02",
+      cropName: "Soybean (सोयाबीन)",
+      title: "Intercultural Weeding in Soybean Plot",
+      titleMarathi: "सोयाबीन प्लॉटमध्ये खुरपणी व तण नियंत्रण",
+      description: "Manual weeding between rows to remove late-season weeds and aerate roots.",
+      taskCategory: "weeding",
+      priority: "medium",
+      status: "in_progress",
+      dueDate: "2026-11-06",
+      estimatedLaborDays: 4,
+      estimatedCost: 1400,
+      notes: "Use hand hoe (खुरपे) without disturbing shallow soybean nodules.",
+      createdAt: "2026-11-01 09:00",
+    },
+    {
+      id: "task_04",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_03",
+      cropName: "Turmeric (हळद)",
+      title: "Harvest Maturity Check & Foliar Bio-potash",
+      titleMarathi: "हळद पक्वता तपासणी आणि जैविक पोटॅश ड्रेन्चिंग",
+      description: "Inspect bottom leaves drying pattern and drench 200L Jeevamrutha around rhizome ridges.",
+      taskCategory: "fertilizer",
+      priority: "low",
+      status: "pending",
+      dueDate: "2026-11-15",
+      estimatedLaborDays: 2,
+      estimatedCost: 700,
+      notes: "Turmeric crop is in day 135 rhizome development stage.",
+      createdAt: "2026-10-28 14:00",
+    },
+    {
+      id: "task_05",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      cropName: "Cotton (कापूस)",
+      title: "Soil Sentinels Battery Check & Recalibration",
+      titleMarathi: "माती सेन्सर्स बॅटरी तपासणी व रिकॅलिब्रेशन",
+      description: "Clean solar top plate and verify RS485 communication with LoRa gateway node.",
+      taskCategory: "maintenance",
+      priority: "low",
+      status: "completed",
+      dueDate: "2026-11-01",
+      completedAt: "2026-11-01 16:30",
+      estimatedLaborDays: 0.5,
+      estimatedCost: 200,
+      notes: "Sensor node MS-PRO-8841 signal quality confirmed at 94% RSSI.",
+      createdAt: "2026-10-27 10:00",
+    },
+    {
+      id: "task_06",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_02",
+      cropName: "Gram / Harbhara (हरभरा)",
+      title: "Seed Treatment with Rhizobium for Rabi Chickpea",
+      titleMarathi: "रब्बी हरभरा रायझोबियम आणि ट्रायकोडर्मा बीजप्रक्रिया",
+      description: "Coat Digvijay chickpea seeds with bio-fertilizers 2 hours before rabi sowing.",
+      taskCategory: "sowing",
+      priority: "medium",
+      status: "pending",
+      dueDate: "2026-11-10",
+      estimatedLaborDays: 1,
+      estimatedCost: 450,
+      notes: "Crucial step for NPOP Stage 2 biological nitrogen fixation.",
+      createdAt: "2026-10-31 11:00",
+    },
+  ],
+
+  // Phase 10: Task History
+  taskHistory: [
+    {
+      id: "th_01",
+      taskId: "task_05",
+      changedByUserId: "usr_farmer_01",
+      oldStatus: "pending",
+      newStatus: "completed",
+      remarks: "Cleaned sentinel sensor casing and confirmed LoRa packet delivery.",
+      recordedAt: "2026-11-01 16:30",
+    },
+    {
+      id: "th_02",
+      taskId: "task_03",
+      changedByUserId: "usr_farmer_01",
+      oldStatus: "pending",
+      newStatus: "in_progress",
+      remarks: "Labourers started weeding on northern half of Plot B.",
+      recordedAt: "2026-11-02 10:15",
+    },
+  ],
+
 };

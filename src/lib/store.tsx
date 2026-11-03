@@ -43,6 +43,12 @@ import {
   AiMessageRecord,
   AiRecommendationRecord,
   AiFeedbackRecord,
+  ExpenseCategoryRecord,
+  FarmExpenseRecord,
+  NotificationRecord,
+  NotificationPreferencesRecord,
+  FarmingTaskRecord,
+  TaskHistoryRecord,
 } from "@/db/seed-data";
 
 export type RoleType =
@@ -206,9 +212,18 @@ interface AppStateContextType {
   ) => Promise<AiMessageRecord>;
   recordAiFeedback: (messageId: string, rating: "thumbs_up" | "thumbs_down", feedbackText?: string) => void;
   dismissRecommendation: (recommendationId: string) => void;
+  // Phase 10: Farm Analytics, Expenses, Notifications & Task Management
+  addFarmExpense: (expense: Omit<FarmExpenseRecord, "id" | "createdAt">) => FarmExpenseRecord;
+  deleteFarmExpense: (expenseId: string) => void;
+  markNotificationAsRead: (notificationId: string) => void;
+  markAllNotificationsAsRead: (userId?: string) => void;
+  updateNotificationPreferences: (prefs: Partial<NotificationPreferencesRecord>) => void;
+  addFarmingTask: (task: Omit<FarmingTaskRecord, "id" | "createdAt">) => FarmingTaskRecord;
+  updateTaskStatus: (taskId: string, status: FarmingTaskRecord["status"], remarks?: string) => void;
+  deleteFarmingTask: (taskId: string) => void;
 }
 
-const STORAGE_KEY = "mazhi_sheti_state_v9";
+const STORAGE_KEY = "mazhi_sheti_state_v10";
 const ONBOARDING_KEY = "mazhi_sheti_onboarding_v3";
 
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
@@ -1551,6 +1566,139 @@ Under your NPOP conversion program, avoid chemical nitrogenous fertilizers and d
     });
   };
 
+  const addFarmExpense = (expense: Omit<FarmExpenseRecord, "id" | "createdAt">): FarmExpenseRecord => {
+    const newExp: FarmExpenseRecord = {
+      ...expense,
+      id: `exp_${Date.now()}`,
+      createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+    };
+    saveState({
+      ...data,
+      farmExpenses: [newExp, ...(data.farmExpenses || [])],
+    });
+    return newExp;
+  };
+
+  const deleteFarmExpense = (expenseId: string) => {
+    saveState({
+      ...data,
+      farmExpenses: (data.farmExpenses || []).filter((e) => e.id !== expenseId),
+    });
+  };
+
+  const markNotificationAsRead = (notificationId: string) => {
+    const now = new Date().toISOString().replace("T", " ").substring(0, 16);
+    const updated = (data.notifications || []).map((n) =>
+      n.id === notificationId ? { ...n, isRead: true, readAt: now } : n
+    );
+    saveState({
+      ...data,
+      notifications: updated,
+    });
+  };
+
+  const markAllNotificationsAsRead = (userId?: string) => {
+    const targetUserId = userId || data.users.find((u) => u.role === "farmer")?.id || "usr_farmer_01";
+    const now = new Date().toISOString().replace("T", " ").substring(0, 16);
+    const updated = (data.notifications || []).map((n) =>
+      n.userId === targetUserId ? { ...n, isRead: true, readAt: now } : n
+    );
+    saveState({
+      ...data,
+      notifications: updated,
+    });
+  };
+
+  const updateNotificationPreferences = (prefs: Partial<NotificationPreferencesRecord>) => {
+    const farmer = data.users.find((u) => u.role === "farmer") || data.users[0];
+    const existing = (data.notificationPreferences || []).find((p) => p.userId === farmer.id);
+    let updatedList: NotificationPreferencesRecord[];
+    if (existing) {
+      updatedList = (data.notificationPreferences || []).map((p) =>
+        p.userId === farmer.id
+          ? { ...p, ...prefs, updatedAt: new Date().toISOString().replace("T", " ").substring(0, 16) }
+          : p
+      );
+    } else {
+      const newPref: NotificationPreferencesRecord = {
+        id: `pref_${Date.now()}`,
+        userId: farmer.id,
+        emailEnabled: true,
+        smsEnabled: true,
+        pushEnabled: true,
+        whatsappEnabled: true,
+        mutedCategories: [],
+        quietHoursStart: "22:00",
+        quietHoursEnd: "06:00",
+        ...prefs,
+        updatedAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+      };
+      updatedList = [newPref, ...(data.notificationPreferences || [])];
+    }
+    saveState({
+      ...data,
+      notificationPreferences: updatedList,
+    });
+  };
+
+  const addFarmingTask = (task: Omit<FarmingTaskRecord, "id" | "createdAt">): FarmingTaskRecord => {
+    const newTask: FarmingTaskRecord = {
+      ...task,
+      id: `task_${Date.now()}`,
+      createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+    };
+    saveState({
+      ...data,
+      farmingTasks: [newTask, ...(data.farmingTasks || [])],
+    });
+    return newTask;
+  };
+
+  const updateTaskStatus = (
+    taskId: string,
+    status: FarmingTaskRecord["status"],
+    remarks?: string
+  ) => {
+    const farmer = data.users.find((u) => u.role === "farmer") || data.users[0];
+    const now = new Date().toISOString().replace("T", " ").substring(0, 16);
+    const existingTask = (data.farmingTasks || []).find((t) => t.id === taskId);
+    if (!existingTask) return;
+
+    const oldStatus = existingTask.status;
+    const updatedTasks = (data.farmingTasks || []).map((t) =>
+      t.id === taskId
+        ? {
+            ...t,
+            status,
+            completedAt: status === "completed" ? now : t.completedAt,
+          }
+        : t
+    );
+
+    const historyEntry: TaskHistoryRecord = {
+      id: `th_${Date.now()}`,
+      taskId,
+      changedByUserId: farmer.id,
+      oldStatus,
+      newStatus: status,
+      remarks: remarks || `Status transitioned from ${oldStatus} to ${status}`,
+      recordedAt: now,
+    };
+
+    saveState({
+      ...data,
+      farmingTasks: updatedTasks,
+      taskHistory: [historyEntry, ...(data.taskHistory || [])],
+    });
+  };
+
+  const deleteFarmingTask = (taskId: string) => {
+    saveState({
+      ...data,
+      farmingTasks: (data.farmingTasks || []).filter((t) => t.id !== taskId),
+    });
+  };
+
   const dismissRecommendation = (recommendationId: string) => {
     const updated = (data.aiRecommendations || []).map((r) =>
       r.id === recommendationId ? { ...r, status: "dismissed" as const } : r
@@ -1629,6 +1777,14 @@ Under your NPOP conversion program, avoid chemical nitrogenous fertilizers and d
         sendAiMessage,
         recordAiFeedback,
         dismissRecommendation,
+        addFarmExpense,
+        deleteFarmExpense,
+        markNotificationAsRead,
+        markAllNotificationsAsRead,
+        updateNotificationPreferences,
+        addFarmingTask,
+        updateTaskStatus,
+        deleteFarmingTask,
       }}
     >
       {children}
