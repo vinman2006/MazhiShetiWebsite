@@ -378,6 +378,108 @@ export interface AgriculturalResourceRecord {
   featured: boolean;
 }
 
+// =========================================================================
+// PHASE 6 INTERFACES: EQUIPMENT RENTAL AND AGRICULTURAL SERVICES
+// =========================================================================
+
+export interface EquipmentListingItem {
+  id: string;
+  providerId: string;
+  providerName: string;
+  providerPhone: string;
+  title: string;
+  category:
+    | "Tractors"
+    | "Rotavators"
+    | "Cultivators"
+    | "Seed drills"
+    | "Harvesters"
+    | "Sprayers"
+    | "Irrigation equipment"
+    | "Other farming machinery";
+  description: string;
+  manufacturer: string;
+  modelNumber?: string;
+  horsepowerOrCapacity?: string;
+  hourlyRate: number;
+  dailyRate: number;
+  location: string;
+  locationDistrict: string;
+  locationTaluka: string;
+  includesOperator: boolean;
+  operatingConditions: string;
+  minimumRentalDuration: string;
+  isAvailable: boolean;
+  imageUrl: string;
+  specs: string;
+  rating: number;
+  status: "active" | "in_use" | "maintenance";
+}
+
+export interface RentalBookingRecord {
+  id: string;
+  equipmentId: string;
+  equipmentName: string;
+  equipmentCategory: string;
+  providerId: string;
+  providerName: string;
+  farmerId: string;
+  farmerName: string;
+  farmerPhone: string;
+  startDate: string;
+  endDate: string;
+  duration: number;
+  durationUnit: "hours" | "days";
+  rateType: "hourly" | "daily";
+  rateAmount: number;
+  totalAmount: number;
+  status: "requested" | "confirmed" | "dispatched" | "completed" | "cancelled" | "rejected";
+  farmLocation: string;
+  operatorIncluded: boolean;
+  notes?: string;
+  createdAt: string;
+}
+
+export interface AgriculturalServiceRecord {
+  id: string;
+  providerId: string;
+  providerName: string;
+  serviceName: string;
+  category:
+    | "soil_testing"
+    | "farm_consultation"
+    | "irrigation_installation"
+    | "machinery_operators"
+    | "organic_farming_consultation";
+  description: string;
+  priceAmount: number;
+  pricingModel: "per_acre" | "per_sample" | "per_day" | "per_visit";
+  serviceLocations: string;
+  certifiedBadge: string;
+  rating: number;
+  isAvailable: boolean;
+  imageUrl?: string;
+}
+
+export interface ServiceBookingRecord {
+  id: string;
+  serviceId: string;
+  serviceName: string;
+  category: string;
+  providerId: string;
+  providerName: string;
+  farmerId: string;
+  farmerName: string;
+  farmerPhone: string;
+  scheduledDate: string;
+  farmLocation: string;
+  areaAcresOrSamples: number;
+  totalAmount: number;
+  status: "requested" | "confirmed" | "in_progress" | "completed" | "cancelled";
+  notes?: string;
+  createdAt: string;
+}
+
 export interface SeedData {
   users: Array<{
     id: string;
@@ -472,18 +574,10 @@ export interface SeedData {
     status: "active" | "in_negotiation" | "sold";
     image: string;
   }>;
-  equipment: Array<{
-    id: string;
-    providerName: string;
-    title: string;
-    category: string;
-    hourlyRate: number;
-    dailyRate: number;
-    location: string;
-    includesOperator: boolean;
-    isAvailable: boolean;
-    specs: string;
-  }>;
+  equipment: EquipmentListingItem[];
+  rentalBookings: RentalBookingRecord[];
+  agriculturalServices: AgriculturalServiceRecord[];
+  serviceBookings: ServiceBookingRecord[];
   financialApplications: Array<{
     id: string;
     applicantName: string;
@@ -979,39 +1073,371 @@ export const initialSeedData: SeedData = {
   equipment: [
     {
       id: "equip_01",
+      providerId: "usr_provider_01",
       providerName: "Mahalaxmi Custom Hiring Center",
-      title: "Mahindra 575 DI 45HP Tractor + Multi-Speed Rotavator",
-      category: "Tractor",
+      providerPhone: "+91 98230 77123",
+      title: "Mahindra 575 DI Sarpanch 45HP Tractor",
+      category: "Tractors",
+      description: "Fuel-efficient 4-cylinder m-Drop engine equipped with high-torque hydraulics, dual-clutch, and power steering. Ideal for deep plowing, rotavator operations, and heavy haulage.",
+      manufacturer: "Mahindra Tractors",
+      modelNumber: "575 DI Sarpanch",
+      horsepowerOrCapacity: "45 HP",
       hourlyRate: 850,
       dailyRate: 6500,
-      location: "Wardha & Karanja Hub (15km radius)",
+      location: "Wardha & Karanja Hub (25km service radius)",
+      locationDistrict: "Wardha",
+      locationTaluka: "Karanja (Lad)",
       includesOperator: true,
+      operatingConditions: "Includes certified machinery driver. Diesel included for the first 4 operating hours. Farmer provides field boundaries and guidance.",
+      minimumRentalDuration: "2 Hours",
       isAvailable: true,
-      specs: "Heavy-duty 4-cylinder m-Drop engine with fuel-saving hydraulics & trained driver.",
+      imageUrl: "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&q=80&w=600",
+      specs: "45 HP Engine • 1600 kg Lift Capacity • Dual PTO 540 RPM • Trained Operator Included",
+      rating: 4.9,
+      status: "active",
     },
     {
       id: "equip_02",
-      providerName: "Kisan Drones Maharashtra",
-      title: "DJI Agras T40 Ultra-Precision Agricultural Drone Sprayer",
-      category: "Drone Sprayer",
-      hourlyRate: 1400,
-      dailyRate: 9800,
-      location: "Available across Vidarbha & Marathwada",
+      providerId: "usr_provider_01",
+      providerName: "Mahalaxmi Custom Hiring Center",
+      providerPhone: "+91 98230 77123",
+      title: "Shaktiman Semi-Champion 7-Feet Multi-Speed Rotavator",
+      category: "Rotavators",
+      description: "High-performance secondary tillage rotavator with boron steel L-blades. Breaks clods, pulverizes hard vertisols into a fine seedbed in a single pass.",
+      manufacturer: "Shaktiman Agro",
+      modelNumber: "Semi-Champion 210",
+      horsepowerOrCapacity: "7 Feet Width (48 Blades)",
+      hourlyRate: 450,
+      dailyRate: 3200,
+      location: "Wardha, Ashti, Arvi",
+      locationDistrict: "Wardha",
+      locationTaluka: "Ashti",
       includesOperator: true,
+      operatingConditions: "Requires minimum 45HP tractor PTO linkage. Suitable for dry or moist black cotton soil.",
+      minimumRentalDuration: "2 Hours",
       isAvailable: true,
-      specs: "40kg payload, centrifugal dual atomizing nozzles, covers 40 acres in 4 hours with centimeter RTK accuracy.",
+      imageUrl: "https://images.unsplash.com/photo-1589923188900-85dae523342b?auto=format&fit=crop&q=80&w=600",
+      specs: "48 L-Type Boron Steel Blades • Multi-Speed Gearbox • Depth Skid Shoes • Operator Attached",
+      rating: 4.8,
+      status: "active",
     },
     {
       id: "equip_03",
+      providerId: "usr_provider_01",
+      providerName: "Kisan Krishi Seva Fleet",
+      providerPhone: "+91 98230 77123",
+      title: "Heavy-Duty 9-Tyne Spring Loaded Tiller Cultivator",
+      category: "Cultivators",
+      description: "Robust spring-loaded tiller designed to break deep hard-pan layers and uproot persistent weeds without damaging soil structure. Shovel points are reversible.",
+      manufacturer: "Fieldking Agro",
+      modelNumber: "FK-9T-HD",
+      horsepowerOrCapacity: "9 Tynes Spring Loaded",
+      hourlyRate: 350,
+      dailyRate: 2400,
+      location: "Nagpur, Wardha, Katol",
+      locationDistrict: "Nagpur",
+      locationTaluka: "Katol",
+      includesOperator: true,
+      operatingConditions: "Pre-irrigation or post-harvest dry soil recommended.",
+      minimumRentalDuration: "2 Hours",
+      isAvailable: true,
+      imageUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&q=80&w=600",
+      specs: "9 Tynes with High Tensile Springs • 65mm Channel Frame • Reversible Shovels",
+      rating: 4.7,
+      status: "active",
+    },
+    {
+      id: "equip_04",
+      providerId: "usr_provider_01",
+      providerName: "Vidarbha Conservation Machinery",
+      providerPhone: "+91 98230 77123",
+      title: "Zero-Till Multi-Crop Happy Seeder & Fertilizer Drill",
+      category: "Seed drills",
+      description: "Direct-drill zero-tillage sowing machine that chops standing stubble and places seeds and fertilizer directly into undisturbed soil. Eliminates residue burning.",
+      manufacturer: "National Agro Industries",
+      modelNumber: "HappySeeder-9R",
+      horsepowerOrCapacity: "9 Rows Multi-Crop",
+      hourlyRate: 650,
+      dailyRate: 4800,
+      location: "Wardha, Karanja, Hinganghat",
+      locationDistrict: "Wardha",
+      locationTaluka: "Karanja (Lad)",
+      includesOperator: true,
+      operatingConditions: "Includes calibrated seed metering disc for soybean, wheat, and chickpea. Operator sets sowing depth.",
+      minimumRentalDuration: "3 Hours",
+      isAvailable: true,
+      imageUrl: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&q=80&w=600",
+      specs: "Zero-Tillage Flail Blades • Dual Seed & Fertilizer Box • Calibrated Depth Wheels",
+      rating: 4.9,
+      status: "active",
+    },
+    {
+      id: "equip_05",
+      providerId: "usr_provider_01",
+      providerName: "Mahalaxmi Combine Harvesters",
+      providerPhone: "+91 98230 77123",
+      title: "CLAAS Crop Tiger 30 Rubber Track Combine Harvester",
+      category: "Harvesters",
+      description: "Heavy-duty multi-crop combine harvester equipped with rubber crawler tracks for wet and muddy soil conditions. High-efficiency threshing and cleaning system for soybean, wheat, and rice.",
+      manufacturer: "CLAAS India",
+      modelNumber: "Crop Tiger 30 Terra Trac",
+      horsepowerOrCapacity: "60 HP Turbocharged",
+      hourlyRate: 2200,
+      dailyRate: 16500,
+      location: "Available across Vidarbha & Marathwada",
+      locationDistrict: "Wardha",
+      locationTaluka: "Wardha",
+      includesOperator: true,
+      operatingConditions: "Includes 2 experienced combine operators and grain unloader. Grain bagger provided. Minimum 4-hour booking.",
+      minimumRentalDuration: "4 Hours",
+      isAvailable: true,
+      imageUrl: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&q=80&w=600",
+      specs: "Rubber Track Crawlers • Tangential Threshing Drum • 1200L Grain Tank • 2 Operators Included",
+      rating: 5.0,
+      status: "active",
+    },
+    {
+      id: "equip_06",
+      providerId: "usr_provider_01",
+      providerName: "Kisan Drones Maharashtra",
+      providerPhone: "+91 98230 77123",
+      title: "DJI Agras T40 Ultra-Precision Agricultural Drone Sprayer",
+      category: "Sprayers",
+      description: "State-of-the-art agricultural drone with 40 kg spray payload, dual centrifugal atomization nozzles, and active phased-array radar. Sprays 1 acre in 6 minutes with millimeter RTK GPS accuracy.",
+      manufacturer: "DJI Agriculture",
+      modelNumber: "Agras T40 Pro",
+      horsepowerOrCapacity: "40 Liters Payload",
+      hourlyRate: 1400,
+      dailyRate: 9800,
+      location: "Wardha, Nagpur, Jalgaon, Amravati",
+      locationDistrict: "Wardha",
+      locationTaluka: "Ashti",
+      includesOperator: true,
+      operatingConditions: "Operated strictly by DGCA-certified commercial drone pilot. Farmer provides clean water and biological formulation/pesticide.",
+      minimumRentalDuration: "2 Hours (Covers 15-20 Acres)",
+      isAvailable: true,
+      imageUrl: "https://images.unsplash.com/photo-1527977966376-1c8408f9f108?auto=format&fit=crop&q=80&w=600",
+      specs: "40L Spray Tank • 12m Swath Width • Centrifugal Nozzles • DGCA Licensed Pilot Included",
+      rating: 4.9,
+      status: "active",
+    },
+    {
+      id: "equip_07",
+      providerId: "usr_provider_01",
+      providerName: "Mahalaxmi Custom Hiring Center",
+      providerPhone: "+91 98230 77123",
+      title: "7.5 HP Portable Diesel Engine Water Pump + 500m Lay-Flat Hose",
+      category: "Irrigation equipment",
+      description: "High-head portable 4-stroke diesel engine water pump kit with 500 meters flexible lay-flat hose and foot-valve strainer. Perfect for drawing water from farm ponds or open wells.",
+      manufacturer: "Kirloskar Oil Engines",
+      modelNumber: "Mega-T 7.5D",
+      horsepowerOrCapacity: "7.5 HP Diesel",
+      hourlyRate: 300,
+      dailyRate: 2000,
+      location: "Wardha, Ashti, Talegaon",
+      locationDistrict: "Wardha",
+      locationTaluka: "Ashti",
+      includesOperator: false,
+      operatingConditions: "Self-driven unit. Initial fuel provided (5 Liters); additional diesel provided by farmer.",
+      minimumRentalDuration: "4 Hours",
+      isAvailable: true,
+      imageUrl: "https://images.unsplash.com/photo-1589923188900-85dae523342b?auto=format&fit=crop&q=80&w=600",
+      specs: "7.5 HP Diesel • 65,000 Liters/hr Discharge • 500m 3-inch Flexible Hose • Self-Priming",
+      rating: 4.6,
+      status: "active",
+    },
+    {
+      id: "equip_08",
+      providerId: "usr_provider_01",
       providerName: "Shree Ganesh Agri Mechanics",
-      title: "Laser Land Leveler + 75HP 4WD Pulling Unit",
-      category: "Laser Leveler",
+      providerPhone: "+91 98230 77123",
+      title: "Laser Land Leveler with Dual-Slope Transmitter Unit",
+      category: "Other farming machinery",
+      description: "Rotary laser transmitter, mast receiver, and hydraulic scraper bucket. Levels uneven agricultural land to exact 0-degree plane, reducing irrigation water consumption by 35%.",
+      manufacturer: "Spectra Precision / Trimble",
+      modelNumber: "GL-422 Dual Slope",
+      horsepowerOrCapacity: "8 Feet Scraper Bucket",
       hourlyRate: 1100,
       dailyRate: 8500,
-      location: "Nagpur, Wardha, Amravati",
+      location: "Nagpur, Wardha, Amravati, Yavatmal",
+      locationDistrict: "Nagpur",
+      locationTaluka: "Katol",
       includesOperator: true,
+      operatingConditions: "Includes 75HP tractor unit, laser mast, and survey specialist. Land must be cultivated beforehand.",
+      minimumRentalDuration: "3 Hours",
       isAvailable: true,
-      specs: "Saves 35% irrigation water by ensuring exact 0-degree ground slope across flat beds.",
+      imageUrl: "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&q=80&w=600",
+      specs: "Dual-Slope Laser Transmitter • 8ft Heavy Scraper Bucket • 75HP 4WD Pulling Unit Included",
+      rating: 4.9,
+      status: "active",
+    },
+  ],
+  rentalBookings: [
+    {
+      id: "book_01",
+      equipmentId: "equip_01",
+      equipmentName: "Mahindra 575 DI Sarpanch 45HP Tractor",
+      equipmentCategory: "Tractors",
+      providerId: "usr_provider_01",
+      providerName: "Mahalaxmi Custom Hiring Center",
+      farmerId: "usr_farmer_01",
+      farmerName: "Rameshwar Sadashiv Shinde",
+      farmerPhone: "+91 98223 41092",
+      startDate: "2026-11-05",
+      endDate: "2026-11-06",
+      duration: 2,
+      durationUnit: "days",
+      rateType: "daily",
+      rateAmount: 6500,
+      totalAmount: 13000,
+      status: "confirmed",
+      farmLocation: "Sadashiv Krishi Tirth, Gat 142/A, Ashti, Wardha",
+      operatorIncluded: true,
+      notes: "Field plowing before post-monsoon chickpea sowing. Operator assigned: Santosh Patil.",
+      createdAt: "2026-11-02 10:15",
+    },
+    {
+      id: "book_02",
+      equipmentId: "equip_06",
+      equipmentName: "DJI Agras T40 Drone Sprayer",
+      equipmentCategory: "Sprayers",
+      providerId: "usr_provider_01",
+      providerName: "Kisan Drones Maharashtra",
+      farmerId: "usr_farmer_01",
+      farmerName: "Rameshwar Sadashiv Shinde",
+      farmerPhone: "+91 98223 41092",
+      startDate: "2026-11-08",
+      endDate: "2026-11-08",
+      duration: 4,
+      durationUnit: "hours",
+      rateType: "hourly",
+      rateAmount: 1400,
+      totalAmount: 5600,
+      status: "requested",
+      farmLocation: "Field C - Salem Turmeric, Gat 143/B, Ashti",
+      operatorIncluded: true,
+      notes: "Biological Neemastra foliar spray across 10 acres. Morning 07:00 AM slot requested.",
+      createdAt: "2026-11-03 08:30",
+    },
+    {
+      id: "book_03",
+      equipmentId: "equip_04",
+      equipmentName: "Zero-Till Happy Seeder",
+      equipmentCategory: "Seed drills",
+      providerId: "usr_provider_01",
+      providerName: "Vidarbha Conservation Machinery",
+      farmerId: "usr_buyer_01",
+      farmerName: "Sachin Patil",
+      farmerPhone: "+91 98201 54321",
+      startDate: "2026-10-25",
+      endDate: "2026-10-25",
+      duration: 1,
+      durationUnit: "days",
+      rateType: "daily",
+      rateAmount: 4800,
+      totalAmount: 4800,
+      status: "completed",
+      farmLocation: "Pachora, Jalgaon Farm #2",
+      operatorIncluded: true,
+      notes: "Direct sowing through standing wheat stubble. Job completed successfully.",
+      createdAt: "2026-10-22 14:00",
+    },
+  ],
+  agriculturalServices: [
+    {
+      id: "srv_01",
+      providerId: "usr_provider_01",
+      providerName: "Dr. PDKV & Krishi Seva Soil Testing Lab",
+      serviceName: "GPS-Grid Scientific Soil Sampling & 12-Parameter Lab Testing",
+      category: "soil_testing",
+      description: "Certified soil sample collection with GPS georeferencing, DTPA micronutrient extraction, pH, electrical conductivity, and tailored fertilizer prescription card.",
+      priceAmount: 450,
+      pricingModel: "per_sample",
+      serviceLocations: "Wardha, Nagpur, Amravati, Yavatmal",
+      certifiedBadge: "NABL & ICAR Accredited",
+      rating: 4.9,
+      isAvailable: true,
+      imageUrl: "https://images.unsplash.com/photo-1589923188900-85dae523342b?auto=format&fit=crop&q=80&w=600",
+    },
+    {
+      id: "srv_02",
+      providerId: "usr_provider_01",
+      providerName: "Aditi Organic Agro Advisory Wing",
+      serviceName: "NPOP & PGS-India Organic Conversion Certification Guidance",
+      category: "organic_farming_consultation",
+      description: "On-site farm inspection, chemical residue risk assessment, 36-month conversion plan preparation, and official record-book verification.",
+      priceAmount: 1800,
+      pricingModel: "per_visit",
+      serviceLocations: "Entire Maharashtra State",
+      certifiedBadge: "APEDA Approved Inspector",
+      rating: 5.0,
+      isAvailable: true,
+      imageUrl: "https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&q=80&w=600",
+    },
+    {
+      id: "srv_03",
+      providerId: "usr_provider_01",
+      providerName: "Jain IrriTech Smart Solutions",
+      serviceName: "Automated Drip & Solenoid Sprinkler Site Engineering & Setup",
+      category: "irrigation_installation",
+      description: "End-to-end hydraulic pressure calculation, mainline PVC laying, inline dripper installation, Venturi fertigation unit, and IoT solenoid valve controller calibration.",
+      priceAmount: 3500,
+      pricingModel: "per_acre",
+      serviceLocations: "Vidarbha & Khandesh",
+      certifiedBadge: "Certified Irrigation Engineer",
+      rating: 4.8,
+      isAvailable: true,
+      imageUrl: "https://images.unsplash.com/photo-1574943320219-553eb213f72d?auto=format&fit=crop&q=80&w=600",
+    },
+    {
+      id: "srv_04",
+      providerId: "usr_provider_01",
+      providerName: "Mahalaxmi Operator Bureau",
+      serviceName: "Licensed Heavy Tractor, Combine & DGCA Drone Operators",
+      category: "machinery_operators",
+      description: "Pre-screened, licensed machine operators with minimum 5 years field experience. Includes insurance and safety gear.",
+      priceAmount: 900,
+      pricingModel: "per_day",
+      serviceLocations: "Wardha, Nagpur, Jalgaon",
+      certifiedBadge: "Verified Operator Pool",
+      rating: 4.8,
+      isAvailable: true,
+      imageUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&q=80&w=600",
+    },
+    {
+      id: "srv_05",
+      providerId: "usr_provider_01",
+      providerName: "PDKV Agri Extension Clinic",
+      serviceName: "On-Site Crop Health Diagnostics & IPM Biological Prescriptions",
+      category: "farm_consultation",
+      description: "Senior agronomist field visit to diagnose wilting, sucking pests, fungal leaf spots, and soil compaction. Prescribes targeted biological concoctions.",
+      priceAmount: 1200,
+      pricingModel: "per_visit",
+      serviceLocations: "Wardha District Hub (35km radius)",
+      certifiedBadge: "M.Sc. / Ph.D. Agronomists",
+      rating: 4.9,
+      isAvailable: true,
+      imageUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=600",
+    },
+  ],
+  serviceBookings: [
+    {
+      id: "sb_01",
+      serviceId: "srv_01",
+      serviceName: "Scientific GPS Soil Sampling & 12-Parameter Lab Testing",
+      category: "soil_testing",
+      providerId: "usr_provider_01",
+      providerName: "Dr. PDKV & Krishi Seva Soil Testing Lab",
+      farmerId: "usr_farmer_01",
+      farmerName: "Rameshwar Sadashiv Shinde",
+      farmerPhone: "+91 98223 41092",
+      scheduledDate: "2026-11-10",
+      farmLocation: "Sadashiv Krishi Tirth, Gat 142/A, Ashti",
+      areaAcresOrSamples: 3,
+      totalAmount: 1350,
+      status: "confirmed",
+      notes: "Sampling North Acre and East Gat parcels. Technician dispatched with GPS core auger.",
+      createdAt: "2026-11-02 11:30",
     },
   ],
   financialApplications: [

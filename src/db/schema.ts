@@ -610,3 +610,119 @@ export const agriculturalResources = pgTable("agricultural_resources", {
   featured: boolean("featured").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// =========================================================================
+// PHASE 6: EQUIPMENT RENTAL AND SERVICE PROVIDER MARKETPLACE
+// =========================================================================
+
+// 38. Providers Table (Equipment & Service custom hiring center operators)
+export const providers = pgTable("providers", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }).notNull().unique(),
+  businessName: text("business_name").notNull(), // e.g. "Mahalaxmi Custom Hiring Center & Drone Fleet"
+  providerType: text("provider_type").notNull().default("equipment_and_services"), // 'machinery' | 'services' | 'equipment_and_services'
+  contactPerson: text("contact_person").notNull(),
+  contactPhone: text("contact_phone").notNull(),
+  contactEmail: text("contact_email"),
+  district: text("district").notNull(),
+  taluka: text("taluka").notNull(),
+  baseVillage: text("base_village").notNull(),
+  serviceRadiusKm: integer("service_radius_km").default(45).notNull(),
+  isVerified: boolean("is_verified").default(true).notNull(),
+  rating: numeric("rating").default("4.9"),
+  totalBookingsCompleted: integer("total_bookings_completed").default(38),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 39. Provider Profiles Table
+export const providerProfiles = pgTable("provider_profiles", {
+  id: text("id").primaryKey(),
+  providerId: text("provider_id").references(() => providers.id, { onDelete: "cascade" }).notNull().unique(),
+  businessLicenseOrGst: text("business_license_or_gst"),
+  yearsInOperation: integer("years_in_operation").default(6),
+  machineryFleetCount: integer("machinery_fleet_count").default(8),
+  trainedOperatorsCount: integer("trained_operators_count").default(5),
+  operatingHours: text("operating_hours").default("06:00 AM - 08:00 PM"),
+  bankAccountMasked: text("bank_account_masked"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 40. Machinery & Equipment Fleet Master Table
+export const equipment = pgTable("equipment", {
+  id: text("id").primaryKey(),
+  providerId: text("provider_id").references(() => providers.id, { onDelete: "cascade" }).notNull(),
+  name: text("name").notNull(), // e.g. "Mahindra 575 DI Sarpanch Tractor (45 HP)"
+  category: text("category").notNull(), // 'Tractors' | 'Rotavators' | 'Cultivators' | 'Seed drills' | 'Harvesters' | 'Sprayers' | 'Irrigation equipment' | 'Other farming machinery'
+  description: text("description").notNull(),
+  manufacturer: text("manufacturer").notNull(),
+  modelYear: integer("model_year").default(2024),
+  horsepowerOrCapacity: text("horsepower_or_capacity"), // "45 HP", "16 Liters RTK", "7-Tyne"
+  hourlyRate: numeric("hourly_rate").notNull(),
+  dailyRate: numeric("daily_rate").notNull(),
+  locationDistrict: text("location_district").notNull(),
+  locationTaluka: text("location_taluka").notNull(),
+  locationVillage: text("location_village").notNull(),
+  includesOperator: boolean("includes_operator").default(true).notNull(),
+  operatingConditions: text("operating_conditions"), // "Diesel included for first 4 hours; Farmer provides clean water for spray"
+  minimumBookingDuration: text("minimum_booking_duration").default("2 Hours"),
+  primaryImageUrl: text("primary_image_url").notNull(),
+  isAvailable: boolean("is_available").default(true).notNull(),
+  status: text("status").default("active").notNull(), // 'active' | 'in_use' | 'maintenance' | 'standby'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 41. Equipment Gallery Images Table
+export const equipmentImages = pgTable("equipment_images", {
+  id: text("id").primaryKey(),
+  equipmentId: text("equipment_id").references(() => equipment.id, { onDelete: "cascade" }).notNull(),
+  imageUrl: text("image_url").notNull(),
+  caption: text("caption"),
+  isPrimary: boolean("is_primary").default(false).notNull(),
+  displayOrder: integer("display_order").default(1),
+});
+
+// 42. Equipment Availability Calendar Table
+export const equipmentAvailability = pgTable("equipment_availability", {
+  id: text("id").primaryKey(),
+  equipmentId: text("equipment_id").references(() => equipment.id, { onDelete: "cascade" }).notNull(),
+  date: text("date").notNull(),
+  isBooked: boolean("is_booked").default(false).notNull(),
+  status: text("status").default("available").notNull(), // 'available' | 'booked' | 'maintenance' | 'reserved'
+  bookingId: text("booking_id"),
+});
+
+// 43. Agricultural Services Catalog Table
+export const agriculturalServices = pgTable("agricultural_services", {
+  id: text("id").primaryKey(),
+  providerId: text("provider_id").references(() => providers.id, { onDelete: "cascade" }).notNull(),
+  serviceName: text("service_name").notNull(), // e.g. "Professional GPS Soil Sample Collection & Lab Testing", "Drip Automation Installation"
+  category: text("category").notNull(), // 'soil_testing' | 'farm_consultation' | 'irrigation_installation' | 'machinery_operators' | 'organic_farming_consultation'
+  description: text("description").notNull(),
+  priceAmount: numeric("price_amount").notNull(),
+  pricingModel: text("pricing_model").notNull(), // 'per_acre' | 'per_sample' | 'per_day' | 'per_visit'
+  serviceRadiusKm: integer("service_radius_km").default(40),
+  certifiedBadge: text("certified_badge").default("PDKV Certified"),
+  rating: numeric("rating").default("4.9"),
+  isAvailable: boolean("is_available").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 44. Service Bookings Table
+export const serviceBookings = pgTable("service_bookings", {
+  id: text("id").primaryKey(),
+  serviceId: text("service_id").references(() => agriculturalServices.id, { onDelete: "cascade" }).notNull(),
+  providerId: text("provider_id").references(() => providers.id, { onDelete: "cascade" }).notNull(),
+  farmerId: text("farmer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  farmerName: text("farmer_name").notNull(),
+  farmerPhone: text("farmer_phone").notNull(),
+  scheduledDate: text("scheduled_date").notNull(),
+  farmLocation: text("farm_location").notNull(),
+  areaAcresOrSamples: numeric("area_acres_or_samples").default("1"),
+  totalAmount: numeric("total_amount").notNull(),
+  status: text("status").default("requested").notNull(), // 'requested' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled'
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});

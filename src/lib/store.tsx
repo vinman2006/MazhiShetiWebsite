@@ -24,6 +24,10 @@ import {
   InputApplicationRecord,
   NoTillRecord,
   AgriculturalResourceRecord,
+  EquipmentListingItem,
+  RentalBookingRecord,
+  AgriculturalServiceRecord,
+  ServiceBookingRecord,
 } from "@/db/seed-data";
 
 export type RoleType =
@@ -142,9 +146,16 @@ interface AppStateContextType {
   addOrganicInput: (input: Omit<OrganicInputRecord, "id">) => void;
   recordInputApplication: (application: Omit<InputApplicationRecord, "id">) => void;
   recordNoTillActivity: (record: Omit<NoTillRecord, "id">) => void;
+  // Phase 6: Equipment & Service Provider Marketplace Actions
+  addEquipmentListing: (item: Omit<EquipmentListingItem, "id">) => void;
+  updateEquipmentAvailability: (id: string, isAvailable: boolean) => void;
+  createRentalBooking: (booking: Omit<RentalBookingRecord, "id" | "status" | "createdAt">) => void;
+  updateBookingStatus: (bookingId: string, status: RentalBookingRecord["status"]) => void;
+  createServiceBooking: (booking: Omit<ServiceBookingRecord, "id" | "status" | "createdAt">) => void;
+  updateServiceBookingStatus: (bookingId: string, status: ServiceBookingRecord["status"]) => void;
 }
 
-const STORAGE_KEY = "mazhi_sheti_state_v5";
+const STORAGE_KEY = "mazhi_sheti_state_v6";
 const ONBOARDING_KEY = "mazhi_sheti_onboarding_v3";
 
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
@@ -877,6 +888,75 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  // ================= PHASE 6: EQUIPMENT & SERVICE PROVIDER MARKETPLACE =================
+
+  const addEquipmentListing = (item: Omit<EquipmentListingItem, "id">) => {
+    const newItem: EquipmentListingItem = {
+      ...item,
+      id: `equip_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      equipment: [newItem, ...(data.equipment || [])],
+    });
+  };
+
+  const updateEquipmentAvailability = (id: string, isAvailable: boolean) => {
+    const updated = (data.equipment || []).map((eq) =>
+      eq.id === id ? { ...eq, isAvailable, status: isAvailable ? ("active" as const) : ("maintenance" as const) } : eq
+    );
+    saveState({
+      ...data,
+      equipment: updated,
+    });
+  };
+
+  const createRentalBooking = (booking: Omit<RentalBookingRecord, "id" | "status" | "createdAt">) => {
+    const newBooking: RentalBookingRecord = {
+      ...booking,
+      id: `book_${Date.now()}`,
+      status: "requested",
+      createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+    };
+    saveState({
+      ...data,
+      rentalBookings: [newBooking, ...(data.rentalBookings || [])],
+    });
+  };
+
+  const updateBookingStatus = (bookingId: string, status: RentalBookingRecord["status"]) => {
+    const updated = (data.rentalBookings || []).map((b) =>
+      b.id === bookingId ? { ...b, status } : b
+    );
+    saveState({
+      ...data,
+      rentalBookings: updated,
+    });
+  };
+
+  const createServiceBooking = (booking: Omit<ServiceBookingRecord, "id" | "status" | "createdAt">) => {
+    const newBooking: ServiceBookingRecord = {
+      ...booking,
+      id: `sb_${Date.now()}`,
+      status: "requested",
+      createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+    };
+    saveState({
+      ...data,
+      serviceBookings: [newBooking, ...(data.serviceBookings || [])],
+    });
+  };
+
+  const updateServiceBookingStatus = (bookingId: string, status: ServiceBookingRecord["status"]) => {
+    const updated = (data.serviceBookings || []).map((sb) =>
+      sb.id === bookingId ? { ...sb, status } : sb
+    );
+    saveState({
+      ...data,
+      serviceBookings: updated,
+    });
+  };
+
   return (
     <AppStateContext.Provider
       value={{
@@ -922,6 +1002,12 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         addOrganicInput,
         recordInputApplication,
         recordNoTillActivity,
+        addEquipmentListing,
+        updateEquipmentAvailability,
+        createRentalBooking,
+        updateBookingStatus,
+        createServiceBooking,
+        updateServiceBookingStatus,
       }}
     >
       {children}
