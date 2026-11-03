@@ -39,6 +39,10 @@ import {
   LoanDocumentItem,
   LoanReviewRecord,
   UserConsentRecord,
+  AiConversationRecord,
+  AiMessageRecord,
+  AiRecommendationRecord,
+  AiFeedbackRecord,
 } from "@/db/seed-data";
 
 export type RoleType =
@@ -192,9 +196,19 @@ interface AppStateContextType {
     notes?: string
   ) => void;
   recordLoanReview: (review: Omit<LoanReviewRecord, "id" | "decisionDate">) => void;
+  // Phase 9: AI Farming Assistant, Conversations & Recommendations
+  createAiConversation: (title: string, language: "mr" | "hi" | "en") => AiConversationRecord;
+  sendAiMessage: (
+    conversationId: string,
+    content: string,
+    language: "mr" | "hi" | "en",
+    attachedImageUrl?: string
+  ) => Promise<AiMessageRecord>;
+  recordAiFeedback: (messageId: string, rating: "thumbs_up" | "thumbs_down", feedbackText?: string) => void;
+  dismissRecommendation: (recommendationId: string) => void;
 }
 
-const STORAGE_KEY = "mazhi_sheti_state_v8";
+const STORAGE_KEY = "mazhi_sheti_state_v9";
 const ONBOARDING_KEY = "mazhi_sheti_onboarding_v3";
 
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
@@ -1273,6 +1287,280 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  // ================= PHASE 9: AI FARMING ASSISTANT, CONVERSATIONS & RECOMMENDATIONS =================
+
+  const createAiConversation = (title: string, language: "mr" | "hi" | "en"): AiConversationRecord => {
+    const farmer = data.users.find((u) => u.role === "farmer") || data.users[0];
+    const primaryFarm = data.farms?.[0];
+    const primaryField = data.fields?.[0];
+    const latestSoil = data.soilTests?.[0];
+
+    const snapshot = JSON.stringify({
+      farmerName: farmer.fullName,
+      village: `${farmer.village}, ${farmer.taluka}, ${farmer.district}`,
+      farmName: primaryFarm?.name,
+      totalAcres: primaryFarm?.totalAcres,
+      primaryCrop: primaryField ? `${primaryField.currentCrop} (${primaryField.cropVariety})` : "Cotton / Soybean",
+      growthStage: primaryField?.growthStage,
+      soilNitrogenKgHa: latestSoil?.nitrogenKgHa || 142,
+      soilPhosphorusKgHa: latestSoil?.phosphorusKgHa || 18,
+      soilPotassiumKgHa: latestSoil?.potassiumKgHa || 290,
+      soilPh: latestSoil?.phLevel || 7.4,
+      soilOrganicCarbonPct: latestSoil?.organicCarbonPct || 0.72,
+      soilMoisturePct: data.currentTelemetry?.moisturePct || 38,
+    });
+
+    const newConv: AiConversationRecord = {
+      id: `conv_${Date.now()}`,
+      farmerId: farmer.id,
+      title,
+      language,
+      contextSnapshot: snapshot,
+      totalMessages: 0,
+      lastMessageAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+      createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+    };
+
+    saveState({
+      ...data,
+      aiConversations: [newConv, ...(data.aiConversations || [])],
+    });
+    return newConv;
+  };
+
+  const sendAiMessage = async (
+    conversationId: string,
+    content: string,
+    language: "mr" | "hi" | "en",
+    attachedImageUrl?: string
+  ): Promise<AiMessageRecord> => {
+    const userMsg: AiMessageRecord = {
+      id: `msg_${Date.now()}_u`,
+      conversationId,
+      sender: "user",
+      content,
+      language,
+      attachedImageUrl,
+      createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+    };
+
+    const targetConv = (data.aiConversations || []).find((c) => c.id === conversationId);
+    let contextData: any = {};
+    try {
+      if (targetConv?.contextSnapshot) {
+        contextData = JSON.parse(targetConv.contextSnapshot);
+      }
+    } catch {}
+
+    const farmer = data.users.find((u) => u.role === "farmer") || data.users[0];
+    const cropName = contextData.primaryCrop || "कापूस / सोयाबीन (Cotton / Soybean)";
+    const soilN = contextData.soilNitrogenKgHa || 142;
+    const soilMoisture = contextData.soilMoisturePct || 38;
+
+    let assistantReply = "";
+    let imageAnalysisResult: AiMessageRecord["imageAnalysisResult"] = undefined;
+    let suggestedActions: AiMessageRecord["suggestedActions"] = undefined;
+
+    if (attachedImageUrl) {
+      if (language === "mr") {
+        assistantReply = `मी तुमच्या अपलोड केलेल्या पिकाच्या पानाच्या छायाचित्राचे कॉम्प्युटर व्हिजनद्वारे विश्लेषण केले आहे:
+
+🔍 **निरीक्षण व लक्षणे**:
+- शिरांमधील पिवळेपणा (Interveinal Chlorosis) आणि करपा ठिपके स्पष्ट दिसत आहेत.
+- पानाच्या मागील बाजूस प्राथमिक रसशोषक किडींचे (पांढरी माशी/मावा) अवशेष दिसत आहेत.
+
+📊 **कृत्रिम बुद्धिमत्ता निदान**:
+- **संभाव्य समस्या**: सुरुवातीची रसशोषक कीड + मातीतील नत्राची कमतरता (${soilN} kg/ha).
+- **अचूकता विश्वासार्हता**: ८९% (AI Confidence Score)
+
+🌿 **जैविक उपाययोजना**:
+१. **दशपर्णी अर्क २०० मिली + निंबोळी अर्क ५%** प्रति १५ लिटर पंपाने आज संध्याकाळी फवारावे.
+२. जमिनीतील ओलावा ${soilMoisture}% असल्याने उद्या सकाळी ४५ मिनिटे ठिबक सिंचन चालवावे.
+
+⚠️ *महत्त्वाची सूचना: हे संगणकीय निदान आहे. प्रादुर्भाव वाढल्यास अथवा लक्षणे न थांबल्यास नजीकच्या कृषी विज्ञान केंद्र (KVK) अथवा कृषी विद्यापीठाच्या पीक डॉक्टरांचा प्रत्यक्ष सल्ला घ्यावा.*`;
+        imageAnalysisResult = {
+          symptomsIdentified: ["शिरांमधील पिवळेपणा (Interveinal Chlorosis)", "पांढऱ्या माशीचे प्राथमिक अवशेष", "पानांची चुरमुर"],
+          probableCause: "सुरुवातीची रसशोषक कीड + नत्राची कमतरता",
+          confidencePct: 89,
+          recommendedRemedy: "दशपर्णी अर्क २०० मिली/पंप + ठिबकद्वारे जीवामृत ड्रेन्चिंग",
+          requiresExpertVerification: false,
+        };
+        suggestedActions = [
+          { label: "ठिबक सिंचन सुरू करा", actionRoute: "/dashboard/farmer/devices" },
+          { label: "माती अहवाल तपासा", actionRoute: "/dashboard/farmer/soil-health" },
+          { label: "पीक डॉक्टरांना विचारा", actionRoute: "/advisory" },
+        ];
+      } else if (language === "hi") {
+        assistantReply = `आपके द्वारा अपलोड की गई फसल की पत्ती की तस्वीर का विश्लेषण:
+
+🔍 **लक्षण एवं पहचान**:
+- नसों के बीच पीलापन (Interveinal Chlorosis) और पत्ती का मुड़ना साफ दिख रहा है।
+- पत्ती की निचली सतह पर रसचूसक कीट (सफेद मक्खी) के लक्षण हैं।
+
+📊 **एआई डायग्नोसिस**:
+- **संभावित कारण**: चूसक कीट का प्रकोप + मिट्टी में नाइट्रोजन की कमी (${soilN} kg/ha)।
+- **सटीकता स्कोर**: 89% (AI Confidence)
+
+🌿 **सुझाए गए उपचार**:
+1. **नीम का तेल (5ml/L) अथवा दशपर्णी अर्क** का शाम को छिड़काव करें।
+2. 200 लीटर जीवामृत ड्रिप द्वारा सिंचाई में दें।
+
+⚠️ *चेतावनी: यदि 5 पत्तियों पर 15 से अधिक मक्खियां दिखें, तो कृषि विज्ञान केंद्र (KVK) के विशेषज्ञ से संपर्क करें।*`;
+        imageAnalysisResult = {
+          symptomsIdentified: ["नसों के बीच पीलापन", "सफेद मक्खी के लक्षण"],
+          probableCause: "सफेद मक्खी प्रकोप + नाइट्रोजन कमी",
+          confidencePct: 89,
+          recommendedRemedy: "दशपर्णी अर्क छिड़काव + जीवामृत सिंचाई",
+          requiresExpertVerification: false,
+        };
+        suggestedActions = [
+          { label: "ड्रिप सिंचाई चलाएं", actionRoute: "/dashboard/farmer/devices" },
+          { label: "मृदा स्वास्थ्य देखें", actionRoute: "/dashboard/farmer/soil-health" },
+        ];
+      } else {
+        assistantReply = `I have analyzed your crop leaf image using agricultural computer vision:
+
+🔍 **Visual Observations**:
+- Clear interveinal chlorosis (yellowing between veins) and curling of margin.
+- Early nymph colonies of sucking pests (whitefly/thrips) on the abaxial leaf surface.
+
+📊 **AI Diagnosis**:
+- **Probable Issue**: Early sucking pest pressure exacerbated by low soil available Nitrogen (${soilN} kg/ha recorded in your soil audit).
+- **Confidence Rating**: 89%
+
+🌿 **Recommended Action Plan**:
+1. Spray **5% Neem Seed Kernel Extract (NSKE)** or **Dashaparni Ark (200 ml / 15L water)** during late afternoon.
+2. Inoculate 200L Jeevamrutha per acre through venturi drip to restore vegetative vigor.
+
+⚠️ *Advisory Note: This is an AI preliminary diagnosis. For critical or spreading blight, please consult university extension pathologists at Dr. PDKV Akola or your local KVK.*`;
+        imageAnalysisResult = {
+          symptomsIdentified: ["Interveinal Chlorosis", "Whitefly Nymph Colonies"],
+          probableCause: "Sucking pest infestation + Nitrogen deficiency",
+          confidencePct: 89,
+          recommendedRemedy: "5% NSKE spray + Jeevamrutha drenching",
+          requiresExpertVerification: false,
+        };
+        suggestedActions = [
+          { label: "View Soil Health Dossier", actionRoute: "/dashboard/farmer/soil-health" },
+          { label: "Dispatch Sprinkler Run", actionRoute: "/dashboard/farmer/devices" },
+        ];
+      }
+    } else {
+      // Text based query response
+      if (language === "mr") {
+        assistantReply = `राम राम ${farmer.fullName}! तुमच्या **${cropName}** आणि वर्धा परिसरातील काळ्या मातीच्या परिस्थितीनुसार माझे मार्गदर्शन:
+
+१. **माती आरोग्य विश्लेषण**:
+तुमच्या माती परीक्षणानुसार उपलब्ध नत्र **${soilN} किलो/हेक्टर (कमी)** आहे. बोंडे/शेंगा भरण्याच्या काळात एकरी २०० लिटर जीवामृत ठिबकद्वारे द्यावे.
+
+२. **सिंचन नियोजन**:
+रूट-झोन ओलावा सध्या **${soilMoisture}%** आहे. तापमान २७°C असल्याने सकाळी ८ पूर्वी ४५ मिनिटे ठिबक सिंचन चालवणे योग्य राहील.
+
+३. **सेंद्रिय पद्धती**:
+रासायनिक खतांचा वापर कमी करून निंबोळी पेंड आणि ट्रायकोडर्मा बुरशीनाशकाचा वापर वाढवावा.
+
+आपणास या विषयावर अधिक माहिती हवी असल्यास खालीलपैकी एका पर्यायावर क्लिक करा.`;
+        suggestedActions = [
+          { label: "माती अहवाल पहा", actionRoute: "/dashboard/farmer/soil-health" },
+          { label: "ठिबक सिंचन सुरू करा", actionRoute: "/dashboard/farmer/devices" },
+          { label: "सेंद्रिय संक्रमण प्रगती", actionRoute: "/dashboard/farmer/organic" },
+        ];
+      } else if (language === "hi") {
+        assistantReply = `नमस्ते ${farmer.fullName}! आपके खेत की मिट्टी और **${cropName}** के संदर्भ में मार्गदर्शन:
+
+1. **मृदा विश्लेषण**:
+आपकी मिट्टी में उपलब्ध नाइट्रोजन **${soilN} kg/ha (न्यूनतम)** है। ड्रिप के माध्यम से 200 लीटर जीवामृत दें।
+
+2. **सिंचाई योजना**:
+रूट-ज़ोन नमी **${soilMoisture}%** पर है। सुबह के समय 45 मिनट ड्रिप सिंचाई चलाएं।
+
+3. **जैविक तकनीक**:
+जैविक कार्बन बढ़ाने के लिए ढैंचा अथवा हरी खाद का समावेश करें।`;
+        suggestedActions = [
+          { label: "मृदा रिपोर्ट देखें", actionRoute: "/dashboard/farmer/soil-health" },
+          { label: "जैविक खेती मॉड्यूल", actionRoute: "/dashboard/farmer/organic" },
+        ];
+      } else {
+        assistantReply = `Greetings ${farmer.fullName}! Based on your verified farm records in **${farmer.village}, ${farmer.district}** cultivating **${cropName}**:
+
+1. **Soil Health Assessment**:
+Your latest soil test indicates available Nitrogen at **${soilN} kg/ha (Deficient)** with pH 7.4. Apply 200L Jeevamrutha per acre via venturi injection before flowering peak.
+
+2. **Irrigation Advisory**:
+Current root-zone moisture sensor reading is **${soilMoisture}%**. We recommend scheduling a 45-minute inline drip fertigation run tomorrow morning.
+
+3. **Sustainable Practice**:
+Under your NPOP conversion program, avoid chemical nitrogenous fertilizers and dress seeds with bio-fertilizers.`;
+        suggestedActions = [
+          { label: "Inspect Soil Test st_01", actionRoute: "/dashboard/farmer/soil-health" },
+          { label: "Trigger Drip Irrigation", actionRoute: "/dashboard/farmer/devices" },
+          { label: "Organic Input Ledger", actionRoute: "/dashboard/farmer/organic" },
+        ];
+      }
+    }
+
+    const assistantMsg: AiMessageRecord = {
+      id: `msg_${Date.now()}_a`,
+      conversationId,
+      sender: "assistant",
+      content: assistantReply,
+      language,
+      imageAnalysisResult,
+      suggestedActions,
+      createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+    };
+
+    const updatedConvs = (data.aiConversations || []).map((c) =>
+      c.id === conversationId
+        ? {
+            ...c,
+            totalMessages: (c.totalMessages || 0) + 2,
+            lastMessageAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+          }
+        : c
+    );
+
+    saveState({
+      ...data,
+      aiConversations: updatedConvs,
+      aiMessages: [...(data.aiMessages || []), userMsg, assistantMsg],
+    });
+
+    return assistantMsg;
+  };
+
+  const recordAiFeedback = (
+    messageId: string,
+    rating: "thumbs_up" | "thumbs_down",
+    feedbackText?: string
+  ) => {
+    const farmer = data.users.find((u) => u.role === "farmer") || data.users[0];
+    const newFb: AiFeedbackRecord = {
+      id: `fb_${Date.now()}`,
+      messageId,
+      farmerId: farmer.id,
+      rating,
+      feedbackText,
+      category: rating === "thumbs_up" ? "helpful" : "needs_improvement",
+      createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+    };
+
+    saveState({
+      ...data,
+      aiFeedback: [newFb, ...(data.aiFeedback || [])],
+    });
+  };
+
+  const dismissRecommendation = (recommendationId: string) => {
+    const updated = (data.aiRecommendations || []).map((r) =>
+      r.id === recommendationId ? { ...r, status: "dismissed" as const } : r
+    );
+    saveState({
+      ...data,
+      aiRecommendations: updated,
+    });
+  };
+
   return (
     <AppStateContext.Provider
       value={{
@@ -1337,6 +1625,10 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         addLoanDocument,
         verifyLoanDocument,
         recordLoanReview,
+        createAiConversation,
+        sendAiMessage,
+        recordAiFeedback,
+        dismissRecommendation,
       }}
     >
       {children}

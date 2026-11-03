@@ -146,7 +146,7 @@ export default function FarmerDashboard() {
     { label: "Deep Root Telemetry", href: "/sensors", icon: Activity, badge: "Live" },
     { label: "Produce Mandi", href: "/marketplace", icon: ShoppingBag },
     { label: "Machinery Fleet", href: "/rentals", icon: Wrench },
-    { label: "Agronomist Clinic", href: "/advisory", icon: Stethoscope },
+    { label: "AI शेती सल्लागार (Crop Clinic)", href: "/advisory", icon: Sparkles, badge: "AI" },
     { label: "Agri-Credit & PMFBY", href: "/finance", icon: Landmark },
   ];
 
@@ -183,7 +183,18 @@ export default function FarmerDashboard() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <Link href="/advisory">
+                <Button
+                  variant="outline"
+                  size="md"
+                  className="bg-brand-lime text-brand-dark hover:bg-lime-400 font-bold border-none"
+                  leftIcon={<Sparkles className="w-4 h-4 text-brand-dark" />}
+                >
+                  AI सल्लागार (Ask AI)
+                </Button>
+              </Link>
+
               <Button
                 variant="outline"
                 size="md"
@@ -446,6 +457,56 @@ export default function FarmerDashboard() {
                     </p>
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* AI Agronomist Precision Recommendations Banner */}
+            <div className="bg-gradient-to-r from-emerald-950 via-brand-dark to-brand-primary rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/10">
+                <div className="space-y-1">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-lime/20 text-brand-lime text-xs font-bold">
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>AI शेती सल्लागार • Live Diagnostics</span>
+                  </div>
+                  <h3 className="text-xl font-black">AI Agronomist Precision Recommendations</h3>
+                  <p className="text-xs text-stone-300">
+                    Grounded in your root-zone telemetry ({tele.nitrogenPpm} ppm N, {tele.moisturePct}% Moisture) and PDKV Vidarbha crop standards.
+                  </p>
+                </div>
+                <Link href="/advisory">
+                  <Button
+                    size="sm"
+                    className="bg-brand-lime text-brand-dark hover:bg-lime-400 font-bold border-none"
+                    rightIcon={<ArrowRight className="w-4 h-4" />}
+                  >
+                    Open Crop Clinic
+                  </Button>
+                </Link>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                {(data.aiRecommendations || []).slice(0, 3).map((rec) => (
+                  <div key={rec.id} className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-brand-lime bg-black/20 px-2 py-0.5 rounded-full">
+                        {rec.recommendationType.replace(/_/g, " ")} • {rec.urgency}
+                      </span>
+                      <span className="text-[10px] text-stone-300 font-mono">
+                        Active
+                      </span>
+                    </div>
+                    <h4 className="text-xs font-bold text-white line-clamp-1">{rec.title}</h4>
+                    <p className="text-[11px] text-stone-200 line-clamp-2 leading-relaxed">
+                      {rec.description}
+                    </p>
+                    <div className="pt-2">
+                      <Link href={rec.actionRoute || "/advisory"} className="inline-flex items-center gap-1 text-[11px] font-bold text-brand-lime hover:underline">
+                        <span>Review Action</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </Link>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>

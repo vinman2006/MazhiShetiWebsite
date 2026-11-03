@@ -984,3 +984,62 @@ export const userConsents = pgTable("user_consents", {
   ipAddress: text("ip_address").default("127.0.0.1").notNull(),
   grantedAt: timestamp("granted_at").defaultNow().notNull(),
 });
+
+
+// =========================================================================
+// PHASE 9: AI-POWERED FARMING ASSISTANT, CONVERSATIONS & RECOMMENDATIONS
+// =========================================================================
+
+// 59. AI Conversations (Persisted farmer assistant chat sessions)
+export const aiConversations = pgTable("ai_conversations", {
+  id: text("id").primaryKey(),
+  farmerId: text("farmer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  title: text("title").notNull(), // e.g. "Cotton leaf yellowing & biofertilizer advice"
+  language: text("language").default("mr").notNull(), // 'mr' | 'hi' | 'en'
+  contextSnapshot: text("context_snapshot"), // JSON serialized snapshot of farmer's fields, soil test, crops
+  totalMessages: integer("total_messages").default(0).notNull(),
+  lastMessageAt: timestamp("last_message_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 60. AI Messages (Context-aware dialogue turns)
+export const aiMessages = pgTable("ai_messages", {
+  id: text("id").primaryKey(),
+  conversationId: text("conversation_id").references(() => aiConversations.id, { onDelete: "cascade" }).notNull(),
+  sender: text("sender").notNull(), // 'user' | 'assistant'
+  content: text("content").notNull(),
+  language: text("language").default("mr").notNull(),
+  attachedImageUrl: text("attached_image_url"),
+  imageAnalysisResult: text("image_analysis_result"), // JSON string of vision diagnosis
+  citedFieldId: text("cited_field_id"),
+  citedSoilTestId: text("cited_soil_test_id"),
+  suggestedActions: text("suggested_actions"), // JSON array of action pills
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 61. AI Recommendations (Actionable farm advisory cards)
+export const aiRecommendations = pgTable("ai_recommendations", {
+  id: text("id").primaryKey(),
+  farmerId: text("farmer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  conversationId: text("conversation_id").references(() => aiConversations.id, { onDelete: "set null" }),
+  recommendationType: text("recommendation_type").notNull(), // 'crop_selection' | 'soil_health' | 'fertilizer_management' | 'organic_transition' | 'irrigation_scheduling' | 'pest_disease_alert' | 'no_till_practice'
+  title: text("title").notNull(),
+  titleMarathi: text("title_marathi").notNull(),
+  description: text("description").notNull(),
+  descriptionMarathi: text("description_marathi").notNull(),
+  urgency: text("urgency").default("advisory").notNull(), // 'info' | 'advisory' | 'urgent'
+  status: text("status").default("active").notNull(), // 'active' | 'applied' | 'dismissed'
+  actionRoute: text("action_route"), // e.g. "/dashboard/farmer/soil-health"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 62. AI Feedback (Farmer evaluation of advice quality)
+export const aiFeedback = pgTable("ai_feedback", {
+  id: text("id").primaryKey(),
+  messageId: text("message_id").references(() => aiMessages.id, { onDelete: "cascade" }).notNull(),
+  farmerId: text("farmer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  rating: text("rating").notNull(), // 'thumbs_up' | 'thumbs_down'
+  feedbackText: text("feedback_text"),
+  category: text("category"), // 'accurate' | 'helpful' | 'inaccurate_crop_advice' | 'language_issue'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

@@ -747,6 +747,73 @@ export interface UserConsentRecord {
   grantedAt: string;
 }
 
+// =========================================================================
+// PHASE 9 INTERFACES: AI FARMING ASSISTANT, CONVERSATIONS & RECOMMENDATIONS
+// =========================================================================
+
+export interface AiConversationRecord {
+  id: string;
+  farmerId: string;
+  title: string;
+  language: "mr" | "hi" | "en";
+  contextSnapshot?: string;
+  totalMessages: number;
+  lastMessageAt: string;
+  createdAt: string;
+}
+
+export interface AiMessageRecord {
+  id: string;
+  conversationId: string;
+  sender: "user" | "assistant";
+  content: string;
+  language: "mr" | "hi" | "en";
+  attachedImageUrl?: string;
+  imageAnalysisResult?: {
+    symptomsIdentified: string[];
+    probableCause: string;
+    confidencePct: number;
+    recommendedRemedy: string;
+    requiresExpertVerification: boolean;
+  };
+  citedFieldId?: string;
+  citedSoilTestId?: string;
+  suggestedActions?: Array<{ label: string; actionRoute?: string; queryText?: string }>;
+  createdAt: string;
+}
+
+export interface AiRecommendationRecord {
+  id: string;
+  farmerId: string;
+  conversationId?: string;
+  recommendationType:
+    | "crop_selection"
+    | "soil_health"
+    | "fertilizer_management"
+    | "organic_transition"
+    | "irrigation_scheduling"
+    | "pest_disease_alert"
+    | "no_till_practice";
+  title: string;
+  titleMarathi: string;
+  description: string;
+  descriptionMarathi: string;
+  urgency: "info" | "advisory" | "urgent";
+  status: "active" | "applied" | "dismissed";
+  actionRoute?: string;
+  createdAt: string;
+}
+
+export interface AiFeedbackRecord {
+  id: string;
+  messageId: string;
+  farmerId: string;
+  rating: "thumbs_up" | "thumbs_down";
+  feedbackText?: string;
+  category?: string;
+  createdAt: string;
+}
+
 export interface SeedData {
   users: Array<{
     id: string;
@@ -885,6 +952,11 @@ export interface SeedData {
   loanApplications: LoanApplicationRecord[];
   loanReviews: LoanReviewRecord[];
   userConsents: UserConsentRecord[];
+  // Phase 9: AI Farming Assistant, Conversations, Recommendations & Feedback
+  aiConversations: AiConversationRecord[];
+  aiMessages: AiMessageRecord[];
+  aiRecommendations: AiRecommendationRecord[];
+  aiFeedback: AiFeedbackRecord[];
 }
 
 export const initialSeedData: SeedData = {
@@ -3264,6 +3336,174 @@ export const initialSeedData: SeedData = {
       isGranted: true,
       ipAddress: "49.36.128.45",
       grantedAt: "2026-10-22 10:15",
+    },
+  ],
+  // Phase 9: AI Farming Assistant, Conversations, Recommendations & Feedback
+  aiConversations: [
+    {
+      id: "conv_01",
+      farmerId: "usr_farmer_01",
+      title: "कापूस पिकावरील कीड नियंत्रण व खत नियोजन (Cotton Pest & Fertigation)",
+      language: "mr",
+      contextSnapshot: JSON.stringify({
+        farmerName: "Rameshwar Sadashiv Shinde",
+        village: "Ashti, Wardha",
+        primaryCrop: "Cotton (Ajeet-155 BG-II)",
+        fieldAreaAcres: 5.5,
+        soilNitrogen: "142 kg/ha (Deficient)",
+        soilMoisture: "38%",
+      }),
+      totalMessages: 4,
+      lastMessageAt: "2026-11-02 16:45",
+      createdAt: "2026-11-02 16:30",
+    },
+    {
+      id: "conv_02",
+      farmerId: "usr_farmer_01",
+      title: "Soil Test NPK Analysis & Organic Carbon Roadmap",
+      language: "en",
+      contextSnapshot: JSON.stringify({
+        farmerName: "Rameshwar Sadashiv Shinde",
+        village: "Ashti, Wardha",
+        organicCarbonPct: 0.72,
+        soilPh: 7.4,
+      }),
+      totalMessages: 2,
+      lastMessageAt: "2026-11-01 11:20",
+      createdAt: "2026-11-01 11:10",
+    },
+  ],
+  aiMessages: [
+    {
+      id: "msg_01",
+      conversationId: "conv_01",
+      sender: "user",
+      content: "राम राम, माझ्या फील्ड A मधील कापूस (Ajeet-155 BG-II) च्या पानांवर पांढऱ्या माशीचा प्रादुर्भाव दिसत आहे आणि खालची पाने पिवळी पडत आहेत. माझ्या जमिनीच्या तपासणी अहवालानुसार योग्य जैविक उपाय सांगा.",
+      language: "mr",
+      createdAt: "2026-11-02 16:30",
+    },
+    {
+      id: "msg_02",
+      conversationId: "conv_01",
+      sender: "assistant",
+      content: `राम राम रामेश्वरजी! तुमच्या **फील्ड A (५.५ एकर, कापूस Ajeet-155 BG-II)** च्या परिस्थितीचे विश्लेषण खालीलप्रमाणे आहे:
+
+१. **पाने पिवळी पडण्याचे मुख्य कारण**:
+तुमच्या माती परीक्षण अहवालानुसार (**st_01**) जमिनीतील **उपलब्ध नत्र (Nitrogen) १४२ किलो/हेक्टर** आहे, जे आवश्यकतेपेक्षा कमी (Deficient) आहे. बोंडे भरण्याच्या अवस्थेत झाडाला नत्राची जास्त गरज असते.
+
+२. **पांढरी माशी (Whitefly) जैविक नियंत्रण**:
+- **निंबोळी अर्क ५% (NSKE)** किंवा **दशपर्णी अर्क २०० मिली प्रति १५ लिटर पंप** फवारणी करा.
+- शेतात एकरी ५ पिवळे चिकट सापळे (Yellow Sticky Traps) लावा.
+
+३. **नत्र व पोषण सुधारणा**:
+- ठिबक सिंचनाद्वारे **एकरी २०० लिटर जीवामृत** व्हेंचुरीने सोडा.
+- तात्काळ पानांवरील पोषणासाठी **१९:१९:१९ विद्राव्य खत १०० ग्रॅम + चिलेटेड झिंक १५ ग्रॅम प्रति पंप** फवारणी करा.
+
+⚠️ *महत्त्वाची सूचना: जर एका पानावर १५ पेक्षा जास्त प्रौढ पांढऱ्या माश्या दिसत असतील (आर्थिक नुकसान पातळी ओलांडली असल्यास), तर कृपया कृषी विज्ञान केंद्र (KVK) वर्धा अथवा डॉ. पंजाबराव देशमुख कृषी विद्यापीठाच्या तज्ज्ञांशी थेट संपर्क साधावा.*`,
+      language: "mr",
+      citedFieldId: "field_cotton_01",
+      citedSoilTestId: "st_01",
+      suggestedActions: [
+        { label: "फील्ड A माती आरोग्य अहवाल पहा", actionRoute: "/dashboard/farmer/soil-health" },
+        { label: "जीवामृत फवारणी नोंद करा", actionRoute: "/dashboard/farmer/organic" },
+        { label: "कृषी तज्ज्ञांशी संपर्क साधा", actionRoute: "/advisory" },
+      ],
+      createdAt: "2026-11-02 16:31",
+    },
+    {
+      id: "msg_03",
+      conversationId: "conv_01",
+      sender: "user",
+      content: "मी पानाचा फोटो काढला आहे, कृपया तपासणी करून सांगा.",
+      language: "mr",
+      attachedImageUrl: "https://images.unsplash.com/photo-1592878904946-b3cd8ae243d0?auto=format&fit=crop&q=80&w=400",
+      createdAt: "2026-11-02 16:42",
+    },
+    {
+      id: "msg_04",
+      conversationId: "conv_01",
+      sender: "assistant",
+      content: `मी तुमच्या पानाच्या छायाचित्राचे कॉम्प्युटर व्हिजनद्वारे विश्लेषण केले आहे:
+
+🔍 **निरीक्षण व लक्षणे**:
+- शिरांमधील पिवळेपणा (Interveinal Chlorosis) स्पष्ट दिसत आहे.
+- पानाच्या मागील बाजूस प्राथमिक पांढऱ्या माशीचे कोष दिसत आहेत.
+
+📊 **कृत्रिम बुद्धिमत्ता निदान**:
+- **संभाव्य समस्या**: सुरुवातीची रसशोषक कीड + नत्र आणि सूक्ष्मअन्नद्रव्यांची कमतरता.
+- **अचूकता विश्वासार्हता**: ८८% (AI Confidence Score)
+
+🌿 **तात्काळ शिफारस**:
+- आज संध्याकाळी ५ वाजल्यानंतर **दशपर्णी अर्क + २% गोमूत्र** फवारणी करावी.
+- जमिनीतील ओलावा ३८% असल्याने उद्या सकाळी ४५ मिनिटे ठिबक सिंचन चालवावे.
+
+⚠️ *टीप: हे निदान डिजिटल फोटोवर आधारित आहे. रोग जास्त पसरल्यास प्रत्यक्ष पीक डॉक्टरांकडून शहानिशा करून घ्यावी.*`,
+      language: "mr",
+      imageAnalysisResult: {
+        symptomsIdentified: ["शिरांमधील पिवळेपणा (Interveinal Chlorosis)", "पांढऱ्या माशीचे प्राथमिक अवशेष"],
+        probableCause: "सुरुवातीची रसशोषक कीड + मातीतील कमी नत्र पातळी (142 kg/ha)",
+        confidencePct: 88,
+        recommendedRemedy: "दशपर्णी अर्क फवारणी + ठिबकद्वारे जीवामृत ड्रेन्चिंग",
+        requiresExpertVerification: false,
+      },
+      suggestedActions: [
+        { label: "ठिबक सिंचन सुरू करा", actionRoute: "/dashboard/farmer/devices" },
+        { label: "जैविक नोंदवहीत नोंदवा", actionRoute: "/dashboard/farmer/organic" },
+      ],
+      createdAt: "2026-11-02 16:45",
+    },
+  ],
+  aiRecommendations: [
+    {
+      id: "rec_01",
+      farmerId: "usr_farmer_01",
+      conversationId: "conv_01",
+      recommendationType: "soil_health",
+      title: "Nitrogen Replenishment for Field A (Cotton Parcel)",
+      titleMarathi: "फील्ड A कापूस पिकासाठी नत्र संवर्धन उपाय",
+      description: "Soil test st_01 shows available Nitrogen at 142 kg/ha (deficient). Apply 200L Jeevamrutha per acre via venturi before peak boll formation to prevent premature senescence.",
+      descriptionMarathi: "माती परीक्षणात नत्र १४२ किलो/हेक्टर (कमी) आढळले आहे. बोंडे भरण्याच्या काळात एकरी २०० लिटर जीवामृत ठिबकद्वारे देऊन नत्राची कमतरता भरून काढा.",
+      urgency: "urgent",
+      status: "active",
+      actionRoute: "/dashboard/farmer/soil-health",
+      createdAt: "2026-11-02 16:32",
+    },
+    {
+      id: "rec_02",
+      farmerId: "usr_farmer_01",
+      recommendationType: "organic_transition",
+      title: "NPOP C1 Transition: Biological Seed Coating Protocol",
+      titleMarathi: "सेंद्रिय संक्रमण टप्पा: रब्बी हरभरा रायझोबियम बीजप्रक्रिया",
+      description: "For your upcoming rabi chickpea sowing on Field B, inoculate seeds with Rhizobium leguminosarum + PSB liquid bio-fertilizer to naturally fix 35 kg atmospheric Nitrogen/ha.",
+      descriptionMarathi: "फील्ड B वरील रब्बी हरभरा पेरणीसाठी रायझोबियम आणि पीएसबी द्रवरूप जिवाणू खताची बीजप्रक्रिया करा, ज्यामुळे हेक्टरी ३५ किलो नत्र नैसर्गिकरित्या जमिनीत स्थिरावेल.",
+      urgency: "advisory",
+      status: "active",
+      actionRoute: "/dashboard/farmer/organic",
+      createdAt: "2026-11-01 10:00",
+    },
+    {
+      id: "rec_03",
+      farmerId: "usr_farmer_01",
+      recommendationType: "irrigation_scheduling",
+      title: "Root-Zone Moisture Depletion Alert (Plot A)",
+      titleMarathi: "ठिबक सिंचन सूचना: रूट-झोन ओलावा ३८% खाली",
+      description: "Soil telemetry node MS-PRO-8841 indicates 38% moisture at 30cm root depth. Run inline drip emitters for 45 minutes to maintain optimal capillary tension.",
+      descriptionMarathi: "३० सेमी मुळांच्या खोलीवर ओलावा ३८% पर्यंत खाली आला आहे. इष्टतम आर्द्रता राखण्यासाठी उद्या सकाळी ४५ मिनिटे ठिबक सिंचन चालवावे.",
+      urgency: "advisory",
+      status: "active",
+      actionRoute: "/dashboard/farmer/devices",
+      createdAt: "2026-11-02 17:00",
+    },
+  ],
+  aiFeedback: [
+    {
+      id: "fb_01",
+      messageId: "msg_02",
+      farmerId: "usr_farmer_01",
+      rating: "thumbs_up",
+      feedbackText: "खूप अचूक माहिती मिळाली! माझ्या माती अहवालानुसार जैविक उपाय सांगितल्याने फायदा झाला.",
+      category: "accurate",
+      createdAt: "2026-11-02 16:35",
     },
   ],
 };
