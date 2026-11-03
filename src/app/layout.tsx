@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AppStateProvider } from "@/lib/store";
+import { FirebaseAuthProvider } from "@/lib/firebase-auth-context";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
@@ -25,9 +26,11 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen flex flex-col bg-[#fdfbf7] text-stone-900 antialiased selection:bg-agri-green-900 selection:text-white">
         <AppStateProvider>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <FirebaseAuthProvider>
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </FirebaseAuthProvider>
         </AppStateProvider>
       </body>
     </html>

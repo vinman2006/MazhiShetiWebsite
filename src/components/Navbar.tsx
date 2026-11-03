@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppState } from "@/lib/store";
+import { useFirebaseAuth } from "@/lib/firebase-auth-context";
 import RoleSwitcher from "./RoleSwitcher";
 import {
   Menu,
@@ -17,11 +18,14 @@ import {
   Landmark,
   LayoutDashboard,
   LogIn,
+  LogOut,
+  User,
 } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
   const { activeRole } = useAppState();
+  const { user, logout } = useFirebaseAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
@@ -75,12 +79,30 @@ export default function Navbar() {
           {/* Right Section: Role Switcher & Action */}
           <div className="hidden sm:flex items-center gap-3">
             <RoleSwitcher />
-            <Link
-              href="/login"
-              className="text-xs font-bold text-slate-700 hover:text-brand-primary px-3 py-1.5 rounded-xl hover:bg-slate-100 transition-colors"
-            >
-              Sign In
-            </Link>
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span
+                  className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1.5 rounded-xl truncate max-w-[140px]"
+                  title={user.email || user.displayName || ""}
+                >
+                  {user.displayName || user.email?.split("@")[0] || "User"}
+                </span>
+                <button
+                  onClick={() => logout()}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="text-xs font-bold text-slate-700 hover:text-brand-primary px-3 py-1.5 rounded-xl hover:bg-slate-100 transition-colors"
+              >
+                Sign In
+              </Link>
+            )}
             <Link
               href={`/dashboard/${activeRole}`}
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-brand-primary text-white shadow-sm hover:bg-brand-dark transition-all active:scale-95"
@@ -118,22 +140,40 @@ export default function Navbar() {
             </Link>
           ))}
           <div className="pt-3 border-t border-slate-100 mt-2 space-y-2">
-            <div className="flex gap-2">
-              <Link
-                href="/login"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex-1 py-2 text-center text-xs font-bold text-slate-700 bg-slate-100 rounded-xl"
-              >
-                Sign In
-              </Link>
-              <Link
-                href="/register"
-                onClick={() => setMobileMenuOpen(false)}
-                className="flex-1 py-2 text-center text-xs font-bold text-brand-dark bg-brand-light rounded-xl"
-              >
-                Register
-              </Link>
-            </div>
+            {user ? (
+              <div className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-xs font-bold text-slate-700 truncate max-w-[180px]">
+                  {user.displayName || user.email}
+                </span>
+                <button
+                  onClick={() => {
+                    logout();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="text-xs font-bold text-rose-600 hover:text-rose-700 flex items-center gap-1"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 py-2 text-center text-xs font-bold text-slate-700 bg-slate-100 rounded-xl"
+                >
+                  Sign In
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex-1 py-2 text-center text-xs font-bold text-brand-dark bg-brand-light rounded-xl"
+                >
+                  Register
+                </Link>
+              </div>
+            )}
             <Link
               href={`/dashboard/${activeRole}`}
               onClick={() => setMobileMenuOpen(false)}

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppState, RoleType } from "@/lib/store";
+import { useFirebaseAuth } from "@/lib/firebase-auth-context";
 import { canAccessPortal } from "@/lib/permissions";
 import { NotificationCenter } from "@/components/ui/NotificationCenter";
 import RoleSwitcher from "@/components/RoleSwitcher";
@@ -52,6 +53,7 @@ export function DashboardShell({
 }: DashboardShellProps) {
   const pathname = usePathname();
   const { data, activeRole } = useAppState();
+  const { user, logout } = useFirebaseAuth();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
@@ -146,17 +148,30 @@ export function DashboardShell({
         <div className="p-3 border-t border-slate-100">
           <div
             className={`flex items-center ${
-              sidebarCollapsed ? "justify-center" : "gap-3"
+              sidebarCollapsed ? "justify-center" : "gap-2.5"
             } p-2 rounded-2xl hover:bg-slate-50 transition-colors`}
           >
-            <div className="w-8 h-8 rounded-xl bg-slate-200 flex items-center justify-center text-slate-700 font-bold text-xs flex-shrink-0">
-              {currentUser.fullName.charAt(0)}
+            <div className="w-8 h-8 rounded-xl bg-brand-light text-brand-dark flex items-center justify-center font-bold text-xs flex-shrink-0">
+              {user?.displayName?.charAt(0) || user?.email?.charAt(0) || currentUser.fullName.charAt(0)}
             </div>
             {!sidebarCollapsed && (
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-slate-900 truncate">{currentUser.fullName}</p>
-                <p className="text-[10px] text-slate-400 truncate">{currentUser.village || "Maharashtra"}</p>
+                <p className="text-xs font-bold text-slate-900 truncate">
+                  {user?.displayName || user?.email?.split("@")[0] || currentUser.fullName}
+                </p>
+                <p className="text-[10px] text-slate-400 truncate">
+                  {user?.email || currentUser.village || "Maharashtra"}
+                </p>
               </div>
+            )}
+            {!sidebarCollapsed && user && (
+              <button
+                onClick={() => logout()}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                title="Sign out of Firebase"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
             )}
           </div>
         </div>
@@ -186,6 +201,16 @@ export function DashboardShell({
           <div className="flex items-center gap-3">
             <RoleSwitcher />
             <NotificationCenter />
+            {user && (
+              <button
+                onClick={() => logout()}
+                className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-rose-600 px-2.5 py-1.5 rounded-xl hover:bg-rose-50 transition-colors"
+                title="Sign out of Firebase"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sign Out</span>
+              </button>
+            )}
             <Link
               href="/"
               className="hidden sm:inline-flex text-xs font-bold text-slate-600 hover:text-brand-primary px-3 py-1.5 rounded-xl hover:bg-slate-100 transition-colors"
