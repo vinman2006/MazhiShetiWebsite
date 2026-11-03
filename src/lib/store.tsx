@@ -10,6 +10,13 @@ import {
   FarmActivityRecord,
   CropObservationRecord,
   HarvestRecordItem,
+  SoilTestRecord,
+  SoilMeasurementRecord,
+  AgriculturalDeviceRecord,
+  SensorReadingRecord,
+  IrrigationScheduleRecord,
+  IrrigationEventRecord,
+  DeviceCommandRecord,
 } from "@/db/seed-data";
 
 export type RoleType =
@@ -98,9 +105,28 @@ interface AppStateContextType {
   bookEquipment: (equipmentId: string, startDate: string, endDate: string, totalDays: number, location: string) => void;
   applyForFinance: (type: string, schemeName: string, requestedAmount: number, farmArea: number) => void;
   updateFinanceStatus: (id: string, status: "submitted" | "under_scrutiny" | "approved" | "disbursed" | "rejected") => void;
+  // Phase 4: Soil Health, Smart Devices, Irrigation & Sprinklers
+  addSoilTest: (test: Omit<SoilTestRecord, "id">) => void;
+  addSoilMeasurement: (measurement: Omit<SoilMeasurementRecord, "id">) => void;
+  registerDevice: (device: Omit<AgriculturalDeviceRecord, "id">) => void;
+  assignDeviceToField: (deviceId: string, fieldId: string, installDepthCm?: number) => void;
+  updateDeviceStatus: (deviceId: string, status: "online" | "offline" | "low_battery" | "maintenance") => void;
+  dispatchDeviceCommand: (
+    deviceId: string,
+    commandType: "START_IRRIGATION" | "STOP_IRRIGATION" | "SET_FLOW_RATE" | "CALIBRATE_SENSOR" | "EMERGENCY_SHUTOFF",
+    parameters?: Record<string, any>
+  ) => Promise<DeviceCommandRecord>;
+  acknowledgeDeviceCommand: (
+    commandId: string,
+    ackPayload: string,
+    status: "ACKNOWLEDGED" | "EXECUTED" | "FAILED"
+  ) => void;
+  addIrrigationSchedule: (schedule: Omit<IrrigationScheduleRecord, "id">) => void;
+  toggleIrrigationSchedule: (scheduleId: string, isActive?: boolean) => void;
+  recordIrrigationEvent: (event: Omit<IrrigationEventRecord, "id">) => void;
 }
 
-const STORAGE_KEY = "mazhi_sheti_state_v3";
+const STORAGE_KEY = "mazhi_sheti_state_v4";
 const ONBOARDING_KEY = "mazhi_sheti_onboarding_v3";
 
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
@@ -457,6 +483,291 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  // ================= PHASE 4: SOIL HEALTH, SMART DEVICES & IRRIGATION =================
+
+  const addSoilTest = (test: Omit<SoilTestRecord, "id">) => {
+    const newTest: SoilTestRecord = {
+      ...test,
+      id: `stl_${Date.now()}`,
+    };
+
+    // Also auto-generate linked soil parameter measurements
+    const linkedMeasurements: SoilMeasurementRecord[] = [
+      {
+        id: `sm_ph_${Date.now()}`,
+        soilTestId: newTest.id,
+        fieldId: newTest.fieldId,
+        fieldName: newTest.fieldName,
+        parameterName: "Soil pH",
+        measuredValue: newTest.phLevel,
+        unit: "pH",
+        measurementMethod: "laboratory",
+        optimalMin: 6.5,
+        optimalMax: 7.8,
+        rating: newTest.phLevel >= 6.5 && newTest.phLevel <= 7.8 ? "optimal" : newTest.phLevel < 6.5 ? "deficient" : "excess",
+        correctiveAction: newTest.phLevel > 7.8 ? "Apply gypsum or acidifying sulfur amender." : newTest.phLevel < 6.5 ? "Apply agricultural lime." : "pH within ideal range.",
+        recordedAt: newTest.testDate,
+      },
+      {
+        id: `sm_n_${Date.now()}`,
+        soilTestId: newTest.id,
+        fieldId: newTest.fieldId,
+        fieldName: newTest.fieldName,
+        parameterName: "Available Nitrogen (N)",
+        measuredValue: newTest.nitrogenKgHa,
+        unit: "kg/ha",
+        measurementMethod: "laboratory",
+        optimalMin: 280,
+        optimalMax: 560,
+        rating: newTest.nitrogenKgHa >= 280 ? "optimal" : "deficient",
+        correctiveAction: newTest.nitrogenKgHa < 280 ? "Top-dress with Neem-coated Urea or split fertigation." : "Nitrogen levels are healthy.",
+        recordedAt: newTest.testDate,
+      },
+      {
+        id: `sm_oc_${Date.now()}`,
+        soilTestId: newTest.id,
+        fieldId: newTest.fieldId,
+        fieldName: newTest.fieldName,
+        parameterName: "Organic Carbon (OC)",
+        measuredValue: newTest.organicCarbonPct,
+        unit: "%",
+        measurementMethod: "laboratory",
+        optimalMin: 0.75,
+        optimalMax: 1.25,
+        rating: newTest.organicCarbonPct >= 0.75 ? "optimal" : "deficient",
+        correctiveAction: newTest.organicCarbonPct < 0.75 ? "Incorporate 2 tonnes/acre FYM or vermicompost." : "Organic carbon is well buffered.",
+        recordedAt: newTest.testDate,
+      },
+      {
+        id: `sm_ec_${Date.now()}`,
+        soilTestId: newTest.id,
+        fieldId: newTest.fieldId,
+        fieldName: newTest.fieldName,
+        parameterName: "Electrical Conductivity (EC)",
+        measuredValue: newTest.electricalConductivity,
+        unit: "dS/m",
+        measurementMethod: "laboratory",
+        optimalMin: 0.1,
+        optimalMax: 1.0,
+        rating: newTest.electricalConductivity <= 1.0 ? "optimal" : "excess",
+        correctiveAction: newTest.electricalConductivity > 1.0 ? "Salinity hazard detected; leach with fresh canal water." : "Salinity is low.",
+        recordedAt: newTest.testDate,
+      },
+    ];
+
+    saveState({
+      ...data,
+      soilTests: [newTest, ...(data.soilTests || [])],
+      soilMeasurements: [...linkedMeasurements, ...(data.soilMeasurements || [])],
+    });
+  };
+
+  const addSoilMeasurement = (measurement: Omit<SoilMeasurementRecord, "id">) => {
+    const newMeasurement: SoilMeasurementRecord = {
+      ...measurement,
+      id: `sm_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      soilMeasurements: [newMeasurement, ...(data.soilMeasurements || [])],
+    });
+  };
+
+  const registerDevice = (device: Omit<AgriculturalDeviceRecord, "id">) => {
+    const newDevice: AgriculturalDeviceRecord = {
+      ...device,
+      id: `dev_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      devices: [newDevice, ...(data.devices || [])],
+    });
+  };
+
+  const assignDeviceToField = (deviceId: string, fieldId: string, installDepthCm?: number) => {
+    const targetField = (data.fields || []).find((f) => f.id === fieldId);
+    const updatedDevices = (data.devices || []).map((d) =>
+      d.id === deviceId
+        ? {
+            ...d,
+            assignedFieldId: fieldId,
+            assignedFieldName: targetField ? targetField.name : "Assigned Field",
+            installDepthCm: installDepthCm !== undefined ? installDepthCm : d.installDepthCm,
+          }
+        : d
+    );
+    saveState({
+      ...data,
+      devices: updatedDevices,
+    });
+  };
+
+  const updateDeviceStatus = (
+    deviceId: string,
+    status: "online" | "offline" | "low_battery" | "maintenance"
+  ) => {
+    const updated = (data.devices || []).map((d) => (d.id === deviceId ? { ...d, status } : d));
+    saveState({
+      ...data,
+      devices: updated,
+    });
+  };
+
+  const dispatchDeviceCommand = async (
+    deviceId: string,
+    commandType: "START_IRRIGATION" | "STOP_IRRIGATION" | "SET_FLOW_RATE" | "CALIBRATE_SENSOR" | "EMERGENCY_SHUTOFF",
+    parameters: Record<string, any> = {}
+  ): Promise<DeviceCommandRecord> => {
+    const targetDevice = (data.devices || []).find((d) => d.id === deviceId);
+    const nowIso = new Date().toISOString().replace("T", " ").substring(0, 19);
+
+    const newCommand: DeviceCommandRecord = {
+      id: `cmd_${Date.now()}`,
+      deviceId,
+      deviceName: targetDevice ? targetDevice.deviceName : "Agricultural Device",
+      commandType,
+      parameters,
+      status: "DISPATCHED",
+      requestedByUserId: "usr_farmer_01",
+      dispatchedAt: nowIso,
+    };
+
+    // Update state with dispatched command
+    let currentData = {
+      ...data,
+      deviceCommands: [newCommand, ...(data.deviceCommands || [])],
+    };
+    saveState(currentData);
+
+    // Simulate edge IoT device handshake (LoRaWAN/MQTT ACK protocol)
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const ackIso = new Date().toISOString().replace("T", " ").substring(0, 19);
+        let ackMsg = `ACK_OK: Command ${commandType} verified and executed by device firmware.`;
+        let updatedEvents = [...(currentData.irrigationEvents || [])];
+
+        if (commandType === "START_IRRIGATION") {
+          const duration = parameters.durationMinutes || 45;
+          const flowRate = parameters.flowRateLpm || 55;
+          const calculatedLiters = duration * flowRate;
+          ackMsg = `ACK_OK: Solenoid valve engaged. Flow rate ${flowRate} LPM active for ${duration} mins.`;
+
+          // Add active irrigation event
+          const newEvent: IrrigationEventRecord = {
+            id: `irrv_${Date.now()}`,
+            farmId: "farm_01",
+            fieldId: targetDevice?.assignedFieldId || "field_01",
+            fieldName: targetDevice?.assignedFieldName || "North Acre - Gat 142/A",
+            deviceId: targetDevice?.id,
+            deviceName: targetDevice?.deviceName,
+            triggerType: "manual",
+            startTime: ackIso,
+            durationMinutes: duration,
+            waterVolumeLiters: calculatedLiters,
+            waterSource: "borewell",
+            status: "in_progress",
+            energyUnitsKwh: Number(((duration / 60) * 2.2).toFixed(1)),
+            notes: `Dispatched via remote command ${newCommand.id}. Solenoid valve open.`,
+          };
+          updatedEvents = [newEvent, ...updatedEvents];
+        } else if (commandType === "STOP_IRRIGATION" || commandType === "EMERGENCY_SHUTOFF") {
+          ackMsg = `ACK_OK: Shutoff command executed. Solenoid valve closed. Pressure stabilized.`;
+          updatedEvents = updatedEvents.map((ev) =>
+            ev.status === "in_progress"
+              ? {
+                  ...ev,
+                  status: "completed" as const,
+                  endTime: ackIso,
+                  notes: `${ev.notes || ""} • Stopped remotely via ${commandType}.`,
+                }
+              : ev
+          );
+        } else if (commandType === "CALIBRATE_SENSOR") {
+          ackMsg = `CALIBRATION_OK: Zero-drift compensated. Probe calibrated against reference clay loam.`;
+        }
+
+        const executedCommand: DeviceCommandRecord = {
+          ...newCommand,
+          status: "EXECUTED",
+          acknowledgedAt: ackIso,
+          executedAt: ackIso,
+          deviceAckPayload: ackMsg,
+        };
+
+        const finalizedCommands = (currentData.deviceCommands || []).map((c) =>
+          c.id === newCommand.id ? executedCommand : c
+        );
+
+        const finalizedData = {
+          ...currentData,
+          deviceCommands: finalizedCommands,
+          irrigationEvents: updatedEvents,
+        };
+        saveState(finalizedData);
+        resolve(executedCommand);
+      }, 700);
+    });
+  };
+
+  const acknowledgeDeviceCommand = (
+    commandId: string,
+    ackPayload: string,
+    status: "ACKNOWLEDGED" | "EXECUTED" | "FAILED"
+  ) => {
+    const updated = (data.deviceCommands || []).map((c) =>
+      c.id === commandId
+        ? {
+            ...c,
+            status,
+            deviceAckPayload: ackPayload,
+            acknowledgedAt: new Date().toISOString(),
+            ...(status === "EXECUTED" ? { executedAt: new Date().toISOString() } : {}),
+          }
+        : c
+    );
+    saveState({
+      ...data,
+      deviceCommands: updated,
+    });
+  };
+
+  const addIrrigationSchedule = (schedule: Omit<IrrigationScheduleRecord, "id">) => {
+    const newSchedule: IrrigationScheduleRecord = {
+      ...schedule,
+      id: `irrs_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      irrigationSchedules: [newSchedule, ...(data.irrigationSchedules || [])],
+    });
+  };
+
+  const toggleIrrigationSchedule = (scheduleId: string, isActive?: boolean) => {
+    const updated = (data.irrigationSchedules || []).map((s) =>
+      s.id === scheduleId
+        ? {
+            ...s,
+            isActive: isActive !== undefined ? isActive : !s.isActive,
+          }
+        : s
+    );
+    saveState({
+      ...data,
+      irrigationSchedules: updated,
+    });
+  };
+
+  const recordIrrigationEvent = (event: Omit<IrrigationEventRecord, "id">) => {
+    const newEvent: IrrigationEventRecord = {
+      ...event,
+      id: `irrv_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      irrigationEvents: [newEvent, ...(data.irrigationEvents || [])],
+    });
+  };
+
   return (
     <AppStateContext.Provider
       value={{
@@ -486,6 +797,16 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         bookEquipment,
         applyForFinance,
         updateFinanceStatus,
+        addSoilTest,
+        addSoilMeasurement,
+        registerDevice,
+        assignDeviceToField,
+        updateDeviceStatus,
+        dispatchDeviceCommand,
+        acknowledgeDeviceCommand,
+        addIrrigationSchedule,
+        toggleIrrigationSchedule,
+        recordIrrigationEvent,
       }}
     >
       {children}

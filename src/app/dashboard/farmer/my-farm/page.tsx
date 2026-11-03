@@ -28,6 +28,8 @@ import {
   Stethoscope,
   Landmark,
   Compass,
+  FlaskConical,
+  Cpu,
 } from "lucide-react";
 
 export default function MyFarmPage() {
@@ -72,6 +74,8 @@ export default function MyFarmPage() {
   const navItems = [
     { label: "Dashboard Overview", href: "/dashboard/farmer", icon: LayoutDashboard },
     { label: "My Farm & Fields", href: "/dashboard/farmer/my-farm", icon: Trees },
+    { label: "Soil Health & Lab", href: "/dashboard/farmer/soil-health", icon: FlaskConical },
+    { label: "Smart Devices & Valves", href: "/dashboard/farmer/devices", icon: Cpu },
     { label: "Soil Telemetry", href: "/sensors", icon: Activity },
     { label: "Produce Mandi", href: "/marketplace", icon: ShoppingBag },
     { label: "Machinery Fleet", href: "/rentals", icon: Wrench },

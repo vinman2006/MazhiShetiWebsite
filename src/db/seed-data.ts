@@ -81,6 +81,154 @@ export interface HarvestRecordItem {
   notes: string;
 }
 
+// =========================================================================
+// PHASE 4 INTERFACES: SOIL HEALTH, SMART DEVICES, IRRIGATION & COMMANDS
+// =========================================================================
+
+export interface SoilTestRecord {
+  id: string;
+  farmerId: string;
+  farmId: string;
+  fieldId: string;
+  fieldName: string;
+  testDate: string;
+  laboratoryName: string;
+  sampleCode: string;
+  reportDocumentUrl?: string;
+  documentName?: string;
+  soilTexture: string;
+  overallHealthScore: number; // 0 - 100
+  phLevel: number;
+  electricalConductivity: number; // dS/m
+  organicCarbonPct: number; // %
+  nitrogenKgHa: number; // kg/ha
+  phosphorusKgHa: number; // kg/ha
+  potassiumKgHa: number; // kg/ha
+  sulfurPpm: number;
+  zincPpm: number;
+  ironPpm: number;
+  recommendations: string;
+  status: "verified" | "pending_verification" | "draft";
+  testedByTechnician: string;
+}
+
+export interface SoilMeasurementRecord {
+  id: string;
+  soilTestId?: string;
+  fieldId: string;
+  fieldName: string;
+  parameterName: string;
+  measuredValue: number;
+  unit: string;
+  measurementMethod: "laboratory" | "sensor" | "estimated";
+  optimalMin: number;
+  optimalMax: number;
+  rating: "deficient" | "optimal" | "excess" | "critical";
+  correctiveAction: string;
+  recordedAt: string;
+}
+
+export interface AgriculturalDeviceRecord {
+  id: string;
+  farmerId: string;
+  deviceType:
+    | "soil_moisture_sensor"
+    | "temperature_sensor"
+    | "fertility_monitor"
+    | "irrigation_controller"
+    | "automatic_sprinkler";
+  deviceName: string;
+  serialNumber: string;
+  manufacturer: string;
+  modelNumber: string;
+  firmwareVersion: string;
+  hardwareMacOrEui: string;
+  status: "online" | "offline" | "low_battery" | "maintenance";
+  batteryPct: number;
+  signalStrengthDbm: number;
+  lastHeartbeatAt: string;
+  assignedFieldId?: string;
+  assignedFieldName?: string;
+  installDepthCm?: number;
+  isEnrolled: boolean;
+}
+
+export interface SensorReadingRecord {
+  id: string;
+  deviceId: string;
+  deviceName: string;
+  fieldId: string;
+  fieldName: string;
+  readingType: string;
+  moisturePct?: number;
+  temperatureC?: number;
+  phLevel?: number;
+  ecMsCm?: number;
+  nitrogenPpm?: number;
+  phosphorusPpm?: number;
+  potassiumPpm?: number;
+  flowRateLpm?: number;
+  batteryVoltage?: number;
+  timestamp: string;
+}
+
+export interface IrrigationScheduleRecord {
+  id: string;
+  farmId: string;
+  fieldId: string;
+  fieldName: string;
+  deviceId?: string;
+  deviceName?: string;
+  scheduleName: string;
+  startTime: string;
+  durationMinutes: number;
+  waterTargetLiters: number;
+  recurrence: "daily" | "alternate_days" | "weekly" | "smart_moisture_trigger";
+  isActive: boolean;
+  automationEnabled: boolean;
+  soilMoistureThresholdPct: number;
+  nextRunAt: string;
+}
+
+export interface IrrigationEventRecord {
+  id: string;
+  farmId: string;
+  fieldId: string;
+  fieldName: string;
+  deviceId?: string;
+  deviceName?: string;
+  scheduleId?: string;
+  triggerType: "manual" | "scheduled" | "smart_sensor_threshold";
+  startTime: string;
+  endTime?: string;
+  durationMinutes: number;
+  waterVolumeLiters: number;
+  waterSource: "borewell" | "well" | "canal" | "farm_pond";
+  status: "completed" | "in_progress" | "interrupted" | "failed";
+  energyUnitsKwh: number;
+  notes?: string;
+}
+
+export interface DeviceCommandRecord {
+  id: string;
+  deviceId: string;
+  deviceName: string;
+  commandType:
+    | "START_IRRIGATION"
+    | "STOP_IRRIGATION"
+    | "SET_FLOW_RATE"
+    | "CALIBRATE_SENSOR"
+    | "EMERGENCY_SHUTOFF";
+  parameters: Record<string, any>;
+  status: "PENDING" | "DISPATCHED" | "ACKNOWLEDGED" | "EXECUTED" | "FAILED";
+  requestedByUserId: string;
+  dispatchedAt: string;
+  acknowledgedAt?: string;
+  executedAt?: string;
+  failureReason?: string;
+  deviceAckPayload?: string;
+}
+
 export interface SeedData {
   users: Array<{
     id: string;
@@ -199,6 +347,14 @@ export interface SeedData {
     status: "submitted" | "under_scrutiny" | "approved" | "disbursed" | "rejected";
     appliedDate: string;
   }>;
+  // Phase 4: Soil Health, Devices, Irrigation & Commands
+  soilTests: SoilTestRecord[];
+  soilMeasurements: SoilMeasurementRecord[];
+  devices: AgriculturalDeviceRecord[];
+  sensorReadings: SensorReadingRecord[];
+  irrigationSchedules: IrrigationScheduleRecord[];
+  irrigationEvents: IrrigationEventRecord[];
+  deviceCommands: DeviceCommandRecord[];
 }
 
 export const initialSeedData: SeedData = {
@@ -737,6 +893,455 @@ export const initialSeedData: SeedData = {
       interestRatePct: 1.5,
       status: "disbursed",
       appliedDate: "2026-06-20",
+    },
+  ],
+  soilTests: [
+    {
+      id: "stl_pdkv_01",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A (Cotton BG-II)",
+      testDate: "2026-09-18",
+      laboratoryName: "Dr. PDKV Regional Soil Testing Laboratory, Akola",
+      sampleCode: "STL-2026-WRD-092",
+      reportDocumentUrl: "/docs/soil-health-card-gat-142a.pdf",
+      documentName: "Soil_Health_Card_Gat142A_PDKV.pdf",
+      soilTexture: "Deep Black Cotton Clay Loam (Vertisol)",
+      overallHealthScore: 88,
+      phLevel: 7.7,
+      electricalConductivity: 0.42,
+      organicCarbonPct: 0.68,
+      nitrogenKgHa: 312,
+      phosphorusKgHa: 22.4,
+      potassiumKgHa: 285,
+      sulfurPpm: 18.5,
+      zincPpm: 1.15,
+      ironPpm: 4.8,
+      recommendations: "Soil structure and nutrient buffering are healthy. Apply 2 tonnes well-decomposed Farmyard Manure (FYM) or Vermicompost before next irrigation to boost organic carbon beyond 0.75%. Top-dress with 25 kg Zinc Sulfate per acre to correct marginal zinc deficiency.",
+      status: "verified",
+      testedByTechnician: "Dr. V. G. Kulkarni (Senior Soil Analyst)",
+    },
+    {
+      id: "stl_krishi_02",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_02",
+      fieldName: "East Gat 143/B (Soybean JS-335)",
+      testDate: "2026-08-10",
+      laboratoryName: "Vasantrao Naik State Agri Testing Center, Wardha",
+      sampleCode: "STL-2026-WRD-041",
+      reportDocumentUrl: "/docs/soil-health-card-gat-143b.pdf",
+      documentName: "Soil_Health_Report_Soybean_Gat143B.pdf",
+      soilTexture: "Medium Black Loam with high drainage",
+      overallHealthScore: 85,
+      phLevel: 7.4,
+      electricalConductivity: 0.38,
+      organicCarbonPct: 0.74,
+      nitrogenKgHa: 295,
+      phosphorusKgHa: 19.8,
+      potassiumKgHa: 310,
+      sulfurPpm: 22.1,
+      zincPpm: 1.42,
+      ironPpm: 5.2,
+      recommendations: "Rhizobium nodulation is active. Maintain balanced phosphorus fertigation using single superphosphate (SSP) during pod initiation. No gypsum required.",
+      status: "verified",
+      testedByTechnician: "S. P. Thakare (Lab In-charge)",
+    },
+    {
+      id: "stl_hist_03",
+      farmerId: "usr_farmer_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A (Pre-Monsoon Baseline)",
+      testDate: "2025-05-22",
+      laboratoryName: "District Agri Soil Testing Lab, Wardha",
+      sampleCode: "STL-2025-WRD-118",
+      reportDocumentUrl: "/docs/soil-baseline-2025.pdf",
+      documentName: "Soil_Baseline_May2025.pdf",
+      soilTexture: "Black Cotton Clay",
+      overallHealthScore: 74,
+      phLevel: 8.2,
+      electricalConductivity: 0.52,
+      organicCarbonPct: 0.52,
+      nitrogenKgHa: 242,
+      phosphorusKgHa: 14.1,
+      potassiumKgHa: 235,
+      sulfurPpm: 12.0,
+      zincPpm: 0.85,
+      ironPpm: 3.9,
+      recommendations: "Moderate salinity and low organic carbon detected. Recommended green manuring with Dhaincha and deep summer plowing.",
+      status: "verified",
+      testedByTechnician: "R. M. Joshi",
+    },
+  ],
+  soilMeasurements: [
+    {
+      id: "sm_ph_01",
+      soilTestId: "stl_pdkv_01",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      parameterName: "Soil pH (Acidity / Alkalinity)",
+      measuredValue: 7.7,
+      unit: "pH",
+      measurementMethod: "laboratory",
+      optimalMin: 6.5,
+      optimalMax: 7.8,
+      rating: "optimal",
+      correctiveAction: "Maintain current irrigation water quality; no pH amender required.",
+      recordedAt: "2026-09-18",
+    },
+    {
+      id: "sm_n_02",
+      soilTestId: "stl_pdkv_01",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      parameterName: "Available Nitrogen (N)",
+      measuredValue: 312,
+      unit: "kg/ha",
+      measurementMethod: "laboratory",
+      optimalMin: 280,
+      optimalMax: 560,
+      rating: "optimal",
+      correctiveAction: "Apply split dose of Neem-coated Urea at 45 Days After Sowing (DAS).",
+      recordedAt: "2026-09-18",
+    },
+    {
+      id: "sm_p_03",
+      soilTestId: "stl_pdkv_01",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      parameterName: "Available Phosphorus (P₂O₅)",
+      measuredValue: 22.4,
+      unit: "kg/ha",
+      measurementMethod: "laboratory",
+      optimalMin: 15,
+      optimalMax: 25,
+      rating: "optimal",
+      correctiveAction: "Adequate phosphorus reserve. Use PSB (Phosphorus Solubilizing Bacteria) with irrigation.",
+      recordedAt: "2026-09-18",
+    },
+    {
+      id: "sm_k_04",
+      soilTestId: "stl_pdkv_01",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      parameterName: "Available Potassium (K₂O)",
+      measuredValue: 285,
+      unit: "kg/ha",
+      measurementMethod: "laboratory",
+      optimalMin: 150,
+      optimalMax: 300,
+      rating: "optimal",
+      correctiveAction: "Potassium levels support boll retention and fiber strength.",
+      recordedAt: "2026-09-18",
+    },
+    {
+      id: "sm_oc_05",
+      soilTestId: "stl_pdkv_01",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      parameterName: "Organic Carbon (OC)",
+      measuredValue: 0.68,
+      unit: "%",
+      measurementMethod: "laboratory",
+      optimalMin: 0.75,
+      optimalMax: 1.25,
+      rating: "deficient",
+      correctiveAction: "Organic carbon is slightly below 0.75% threshold. Add 2 metric tonnes vermicompost or apply crop residue mulching.",
+      recordedAt: "2026-09-18",
+    },
+    {
+      id: "sm_ec_06",
+      soilTestId: "stl_pdkv_01",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      parameterName: "Electrical Conductivity (EC)",
+      measuredValue: 0.42,
+      unit: "dS/m",
+      measurementMethod: "laboratory",
+      optimalMin: 0.1,
+      optimalMax: 1.0,
+      rating: "optimal",
+      correctiveAction: "Non-saline soil condition. Excellent root elongation buffer.",
+      recordedAt: "2026-09-18",
+    },
+    {
+      id: "sm_moist_sensor_07",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      parameterName: "Live Root-Zone Moisture",
+      measuredValue: 38.4,
+      unit: "%",
+      measurementMethod: "sensor",
+      optimalMin: 32,
+      optimalMax: 48,
+      rating: "optimal",
+      correctiveAction: "Real-time capacitive probe reading at 25 cm depth. Moisture level is in optimal transpirational range.",
+      recordedAt: "2026-11-03",
+    },
+    {
+      id: "sm_temp_sensor_08",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      parameterName: "Soil Root Temperature",
+      measuredValue: 24.2,
+      unit: "°C",
+      measurementMethod: "sensor",
+      optimalMin: 18,
+      optimalMax: 30,
+      rating: "optimal",
+      correctiveAction: "Live digital RTD probe reading. Temperature promotes optimal microbial nitrification.",
+      recordedAt: "2026-11-03",
+    },
+    {
+      id: "sm_estimated_n_09",
+      fieldId: "field_02",
+      fieldName: "East Gat 143/B",
+      parameterName: "Bio-Available N Uptake (Estimated)",
+      measuredValue: 275,
+      unit: "kg/ha",
+      measurementMethod: "estimated",
+      optimalMin: 250,
+      optimalMax: 400,
+      rating: "optimal",
+      correctiveAction: "Calculated via crop growth stage formula (Soybean Pod Filling phase).",
+      recordedAt: "2026-11-01",
+    },
+  ],
+  devices: [
+    {
+      id: "dev_moist_01",
+      farmerId: "usr_farmer_01",
+      deviceType: "soil_moisture_sensor",
+      deviceName: "Sentinel Capacitive Moisture Probe #1",
+      serialNumber: "MS-PRO-8841-WRD",
+      manufacturer: "Mazhi Sheti IoT Labs",
+      modelNumber: "Sentinel-M3 Pro",
+      firmwareVersion: "v2.4.1",
+      hardwareMacOrEui: "A8:40:41:1B:90:3E",
+      status: "online",
+      batteryPct: 96,
+      signalStrengthDbm: -68,
+      lastHeartbeatAt: "Just now (4 min ago)",
+      assignedFieldId: "field_01",
+      assignedFieldName: "North Acre - Gat 142/A",
+      installDepthCm: 25,
+      isEnrolled: true,
+    },
+    {
+      id: "dev_npk_02",
+      farmerId: "usr_farmer_01",
+      deviceType: "fertility_monitor",
+      deviceName: "Deep Root Multi-Param NPK Sentinel #2",
+      serialNumber: "MS-NPK-4420-WRD",
+      manufacturer: "Mazhi Sheti IoT Labs",
+      modelNumber: "NutriSense-Pro-7P",
+      firmwareVersion: "v2.4.1",
+      hardwareMacOrEui: "A8:40:41:1B:92:AA",
+      status: "online",
+      batteryPct: 88,
+      signalStrengthDbm: -72,
+      lastHeartbeatAt: "12 min ago",
+      assignedFieldId: "field_01",
+      assignedFieldName: "North Acre - Gat 142/A",
+      installDepthCm: 30,
+      isEnrolled: true,
+    },
+    {
+      id: "dev_sprink_03",
+      farmerId: "usr_farmer_01",
+      deviceType: "automatic_sprinkler",
+      deviceName: "Automatic High-Pressure Sprinkler Solenoid Valve",
+      serialNumber: "MS-SPR-7731-WRD",
+      manufacturer: "Jain IrriTech & Mazhi Sheti Connected",
+      modelNumber: "SmartValve-LoRa-32",
+      firmwareVersion: "v3.1.0",
+      hardwareMacOrEui: "B2:70:12:44:81:9F",
+      status: "online",
+      batteryPct: 100, // Solar trickle charged
+      signalStrengthDbm: -61,
+      lastHeartbeatAt: "Just now (2 min ago)",
+      assignedFieldId: "field_01",
+      assignedFieldName: "North Acre - Gat 142/A",
+      installDepthCm: 0,
+      isEnrolled: true,
+    },
+    {
+      id: "dev_ctrl_04",
+      farmerId: "usr_farmer_01",
+      deviceType: "irrigation_controller",
+      deviceName: "Borewell Pump Smart Automation Controller",
+      serialNumber: "MS-PUMP-9011-WRD",
+      manufacturer: "Kirloskar-Mazhi Smart Controller",
+      modelNumber: "AgriPump-GSM-4G",
+      firmwareVersion: "v1.8.4",
+      hardwareMacOrEui: "C4:55:78:90:12:11",
+      status: "online",
+      batteryPct: 98,
+      signalStrengthDbm: -59,
+      lastHeartbeatAt: "Just now (1 min ago)",
+      assignedFieldId: "field_02",
+      assignedFieldName: "East Gat 143/B",
+      isEnrolled: true,
+    },
+    {
+      id: "dev_temp_05",
+      farmerId: "usr_farmer_01",
+      deviceType: "temperature_sensor",
+      deviceName: "Canopy & Micro-Climate Ambience Sensor",
+      serialNumber: "MS-AMB-3109-WRD",
+      manufacturer: "Mazhi Sheti IoT Labs",
+      modelNumber: "ClimaSense-RTD",
+      firmwareVersion: "v2.0.2",
+      hardwareMacOrEui: "D1:22:90:88:14:62",
+      status: "online",
+      batteryPct: 92,
+      signalStrengthDbm: -70,
+      lastHeartbeatAt: "8 min ago",
+      assignedFieldId: "field_03",
+      assignedFieldName: "South Turmeric Plot",
+      installDepthCm: 15,
+      isEnrolled: true,
+    },
+  ],
+  sensorReadings: [
+    {
+      id: "sr_01",
+      deviceId: "dev_moist_01",
+      deviceName: "Sentinel Capacitive Moisture Probe #1",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      readingType: "telemetry_packet",
+      moisturePct: 38.4,
+      temperatureC: 24.2,
+      phLevel: 7.6,
+      ecMsCm: 0.44,
+      batteryVoltage: 3.65,
+      timestamp: "Today, 08:15 AM",
+    },
+    {
+      id: "sr_02",
+      deviceId: "dev_npk_02",
+      deviceName: "Deep Root Multi-Param NPK Sentinel #2",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      readingType: "npk",
+      nitrogenPpm: 124,
+      phosphorusPpm: 18,
+      potassiumPpm: 215,
+      timestamp: "Today, 07:45 AM",
+    },
+    {
+      id: "sr_03",
+      deviceId: "dev_sprink_03",
+      deviceName: "Automatic High-Pressure Sprinkler Solenoid Valve",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      readingType: "flow_rate",
+      flowRateLpm: 0,
+      timestamp: "Today, 08:20 AM",
+    },
+  ],
+  irrigationSchedules: [
+    {
+      id: "irrs_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      deviceId: "dev_sprink_03",
+      deviceName: "Automatic High-Pressure Sprinkler Solenoid Valve",
+      scheduleName: "Morning Automated Sprinkler Cycle (Gat 142/A)",
+      startTime: "06:30 AM",
+      durationMinutes: 45,
+      waterTargetLiters: 3500,
+      recurrence: "daily",
+      isActive: true,
+      automationEnabled: true,
+      soilMoistureThresholdPct: 35,
+      nextRunAt: "Tomorrow, 06:30 AM",
+    },
+    {
+      id: "irrs_02",
+      farmId: "farm_01",
+      fieldId: "field_02",
+      fieldName: "East Gat 143/B",
+      deviceId: "dev_ctrl_04",
+      deviceName: "Borewell Pump Smart Automation Controller",
+      scheduleName: "Evening Drip Fertigation - Soybean",
+      startTime: "05:15 PM",
+      durationMinutes: 30,
+      waterTargetLiters: 2400,
+      recurrence: "alternate_days",
+      isActive: true,
+      automationEnabled: false,
+      soilMoistureThresholdPct: 30,
+      nextRunAt: "Today, 05:15 PM",
+    },
+  ],
+  irrigationEvents: [
+    {
+      id: "irrv_01",
+      farmId: "farm_01",
+      fieldId: "field_01",
+      fieldName: "North Acre - Gat 142/A",
+      deviceId: "dev_sprink_03",
+      deviceName: "Automatic High-Pressure Sprinkler Solenoid Valve",
+      scheduleId: "irrs_01",
+      triggerType: "smart_sensor_threshold",
+      startTime: "2026-11-02 06:30",
+      endTime: "2026-11-02 07:15",
+      durationMinutes: 45,
+      waterVolumeLiters: 3500,
+      waterSource: "borewell",
+      status: "completed",
+      energyUnitsKwh: 2.1,
+      notes: "Triggered automatically when moisture dropped to 33.8%. Completed without line pressure drops.",
+    },
+    {
+      id: "irrv_02",
+      farmId: "farm_01",
+      fieldId: "field_02",
+      fieldName: "East Gat 143/B",
+      deviceId: "dev_ctrl_04",
+      deviceName: "Borewell Pump Smart Automation Controller",
+      triggerType: "manual",
+      startTime: "2026-10-31 16:45",
+      endTime: "2026-10-31 17:30",
+      durationMinutes: 45,
+      waterVolumeLiters: 3200,
+      waterSource: "farm_pond",
+      status: "completed",
+      energyUnitsKwh: 1.8,
+      notes: "Manual drip irrigation with 19:19:19 water-soluble fertigation injection.",
+    },
+  ],
+  deviceCommands: [
+    {
+      id: "cmd_01",
+      deviceId: "dev_sprink_03",
+      deviceName: "Automatic High-Pressure Sprinkler Solenoid Valve",
+      commandType: "START_IRRIGATION",
+      parameters: { durationMinutes: 45, targetFlowLpm: 60, valveIndex: 1 },
+      status: "EXECUTED",
+      requestedByUserId: "usr_farmer_01",
+      dispatchedAt: "2026-11-02 06:30:02",
+      acknowledgedAt: "2026-11-02 06:30:05",
+      executedAt: "2026-11-02 07:15:00",
+      deviceAckPayload: "ACK_OK: Valve 1 opened at 60 LPM, executed duration 45m. Closed cleanly.",
+    },
+    {
+      id: "cmd_02",
+      deviceId: "dev_moist_01",
+      deviceName: "Sentinel Capacitive Moisture Probe #1",
+      commandType: "CALIBRATE_SENSOR",
+      parameters: { referenceSoilType: "Black Cotton Clay", temperatureRefC: 25 },
+      status: "ACKNOWLEDGED",
+      requestedByUserId: "usr_farmer_01",
+      dispatchedAt: "2026-10-28 11:14:00",
+      acknowledgedAt: "2026-10-28 11:14:02",
+      executedAt: "2026-10-28 11:14:15",
+      deviceAckPayload: "CALIBRATION_OK: Zero-drift adjusted, calibrated against baseline vertisol index.",
     },
   ],
 };

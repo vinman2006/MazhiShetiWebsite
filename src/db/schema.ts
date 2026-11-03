@@ -334,3 +334,158 @@ export const auditLogs = pgTable("audit_logs", {
   ipAddress: text("ip_address"),
   timestamp: timestamp("timestamp").defaultNow().notNull(),
 });
+
+// =========================================================================
+// PHASE 4: SOIL HEALTH, SMART DEVICES, IRRIGATION & SPRINKLER INTEGRATION
+// =========================================================================
+
+// 23. Soil Tests Table (Laboratory & certified field test reports)
+export const soilTests = pgTable("soil_tests", {
+  id: text("id").primaryKey(),
+  farmerId: text("farmer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  farmId: text("farm_id").references(() => farms.id, { onDelete: "cascade" }).notNull(),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "cascade" }).notNull(),
+  testDate: text("test_date").notNull(),
+  laboratoryName: text("laboratory_name").notNull(), // e.g. "PDKV Agricultural Soil Testing Lab", "Mahalaxmi Krishi Seva Lab"
+  sampleCode: text("sample_code").notNull(), // e.g. "STL-2025-WRD-092"
+  reportDocumentUrl: text("report_document_url"), // URL or path to uploaded PDF / certificate
+  documentName: text("document_name"),
+  soilTexture: text("soil_texture").notNull().default("Clay Loam"), // "Deep Black Clay", "Sandy Loam", etc.
+  overallHealthScore: integer("overall_health_score").default(85).notNull(), // 0 - 100
+  phLevel: numeric("ph_level").notNull(),
+  electricalConductivity: numeric("electrical_conductivity").notNull(), // dS/m or mS/cm
+  organicCarbonPct: numeric("organic_carbon_pct").notNull(), // %
+  nitrogenKgHa: numeric("nitrogen_kg_ha").notNull(), // Available Nitrogen (kg/ha)
+  phosphorusKgHa: numeric("phosphorus_kg_ha").notNull(), // Available Phosphorus (kg/ha)
+  potassiumKgHa: numeric("potassium_kg_ha").notNull(), // Available Potassium (kg/ha)
+  sulfurPpm: numeric("sulfur_ppm"),
+  zincPpm: numeric("zinc_ppm"),
+  ironPpm: numeric("iron_ppm"),
+  recommendations: text("recommendations"),
+  status: text("status").default("verified").notNull(), // 'verified' | 'pending_verification' | 'draft'
+  testedByTechnician: text("tested_by_technician"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 24. Soil Measurements Table (Granular parameter records with methodology & ranges)
+export const soilMeasurements = pgTable("soil_measurements", {
+  id: text("id").primaryKey(),
+  soilTestId: text("soil_test_id").references(() => soilTests.id, { onDelete: "cascade" }),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "cascade" }).notNull(),
+  parameterName: text("parameter_name").notNull(), // 'pH', 'Nitrogen (N)', 'Phosphorus (P)', 'Potassium (K)', 'Organic Carbon', 'Soil Moisture', 'Soil Temperature', 'Electrical Conductivity (EC)'
+  measuredValue: numeric("measured_value").notNull(),
+  unit: text("unit").notNull(), // 'pH', 'kg/ha', '%', '°C', 'dS/m'
+  measurementMethod: text("measurement_method").notNull(), // 'laboratory' | 'sensor' | 'estimated'
+  optimalMin: numeric("optimal_min").notNull(),
+  optimalMax: numeric("optimal_max").notNull(),
+  rating: text("rating").notNull(), // 'deficient' | 'optimal' | 'excess' | 'critical'
+  correctiveAction: text("corrective_action"),
+  recordedAt: timestamp("recorded_at").defaultNow().notNull(),
+});
+
+// 25. Agricultural Devices Table (IoT probes, Smart Sprinklers, Irrigation Controllers)
+export const agriculturalDevices = pgTable("agricultural_devices", {
+  id: text("id").primaryKey(),
+  farmerId: text("farmer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  deviceType: text("device_type").notNull(), // 'soil_moisture_sensor' | 'temperature_sensor' | 'fertility_monitor' | 'irrigation_controller' | 'automatic_sprinkler'
+  deviceName: text("device_name").notNull(), // e.g. "East Gat Micro-Sprinkler Valve #1", "Sentinel Moisture Probe v2"
+  serialNumber: text("serial_number").unique().notNull(), // e.g. "MS-SPR-9921-A"
+  manufacturer: text("manufacturer").default("Mazhi Sheti IoT Labs").notNull(),
+  modelNumber: text("model_number").default("SmartAgri-Pro-X1").notNull(),
+  firmwareVersion: text("firmware_version").default("v2.4.1").notNull(),
+  hardwareMacOrEui: text("hardware_mac_or_eui"),
+  status: text("status").default("online").notNull(), // 'online' | 'offline' | 'low_battery' | 'maintenance'
+  batteryPct: integer("battery_pct").default(95).notNull(),
+  signalStrengthDbm: integer("signal_strength_dbm").default(-65).notNull(),
+  lastHeartbeatAt: timestamp("last_heartbeat_at").defaultNow().notNull(),
+  authTokenHash: text("auth_token_hash"), // Device authentication token hash for secure command dispatch
+  isEnrolled: boolean("is_enrolled").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 26. Device Assignments Table (Attaching devices to parcels)
+export const deviceAssignments = pgTable("device_assignments", {
+  id: text("id").primaryKey(),
+  deviceId: text("device_id").references(() => agriculturalDevices.id, { onDelete: "cascade" }).notNull(),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "cascade" }).notNull(),
+  farmId: text("farm_id").references(() => farms.id, { onDelete: "cascade" }).notNull(),
+  installDepthCm: integer("install_depth_cm").default(25), // For soil probes
+  installationNotes: text("installation_notes"),
+  assignedAt: timestamp("assigned_at").defaultNow().notNull(),
+  unassignedAt: timestamp("unassigned_at"),
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
+// 27. Sensor Readings Table (Live chronological telemetry stream)
+export const sensorReadings = pgTable("sensor_readings", {
+  id: text("id").primaryKey(),
+  deviceId: text("device_id").references(() => agriculturalDevices.id, { onDelete: "cascade" }).notNull(),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "cascade" }).notNull(),
+  readingType: text("reading_type").default("telemetry_packet").notNull(), // 'telemetry_packet' | 'moisture' | 'temperature' | 'npk' | 'flow_rate'
+  moisturePct: numeric("moisture_pct"),
+  temperatureC: numeric("temperature_c"),
+  phLevel: numeric("ph_level"),
+  ecMsCm: numeric("ec_ms_cm"),
+  nitrogenPpm: numeric("nitrogen_ppm"),
+  phosphorusPpm: numeric("phosphorus_ppm"),
+  potassiumPpm: numeric("potassium_ppm"),
+  flowRateLpm: numeric("flow_rate_lpm"), // Liters per minute for irrigation controllers
+  batteryVoltage: numeric("battery_voltage"),
+  rawPayload: text("raw_payload"),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+// 28. Irrigation Schedules Table (Automated & planned irrigation cycles)
+export const irrigationSchedules = pgTable("irrigation_schedules", {
+  id: text("id").primaryKey(),
+  farmId: text("farm_id").references(() => farms.id, { onDelete: "cascade" }).notNull(),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "cascade" }).notNull(),
+  deviceId: text("device_id").references(() => agriculturalDevices.id, { onDelete: "set null" }),
+  scheduleName: text("schedule_name").notNull(), // "Morning Drip Fertigation - Gat 142"
+  startTime: text("start_time").notNull(), // "06:30"
+  durationMinutes: integer("duration_minutes").notNull(), // 45
+  waterTargetLiters: integer("water_target_liters").notNull(), // 3500
+  recurrence: text("recurrence").default("daily").notNull(), // 'daily' | 'alternate_days' | 'weekly' | 'smart_moisture_trigger'
+  isActive: boolean("is_active").default(true).notNull(),
+  automationEnabled: boolean("automation_enabled").default(true).notNull(),
+  soilMoistureThresholdPct: integer("soil_moisture_threshold_pct").default(35), // Trigger automatic sprinkler if moisture drops below this
+  nextRunAt: text("next_run_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 29. Irrigation Events Table (Execution log of water delivered)
+export const irrigationEvents = pgTable("irrigation_events", {
+  id: text("id").primaryKey(),
+  farmId: text("farm_id").references(() => farms.id, { onDelete: "cascade" }).notNull(),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "cascade" }).notNull(),
+  deviceId: text("device_id").references(() => agriculturalDevices.id, { onDelete: "set null" }),
+  scheduleId: text("schedule_id").references(() => irrigationSchedules.id, { onDelete: "set null" }),
+  triggerType: text("trigger_type").notNull(), // 'manual' | 'scheduled' | 'smart_sensor_threshold'
+  startTime: text("start_time").notNull(),
+  endTime: text("end_time"),
+  durationMinutes: integer("duration_minutes").notNull(),
+  waterVolumeLiters: numeric("water_volume_liters").notNull(),
+  waterSource: text("water_source").notNull(), // 'borewell' | 'well' | 'canal' | 'farm_pond'
+  status: text("status").default("completed").notNull(), // 'completed' | 'in_progress' | 'interrupted' | 'failed'
+  energyUnitsKwh: numeric("energy_units_kwh").default("1.8"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 30. Device Commands Table (Secure commands dispatched to connected sprinklers & controllers)
+export const deviceCommands = pgTable("device_commands", {
+  id: text("id").primaryKey(),
+  deviceId: text("device_id").references(() => agriculturalDevices.id, { onDelete: "cascade" }).notNull(),
+  commandType: text("command_type").notNull(), // 'START_IRRIGATION' | 'STOP_IRRIGATION' | 'SET_FLOW_RATE' | 'CALIBRATE_SENSOR' | 'EMERGENCY_SHUTOFF'
+  parameters: text("parameters").notNull(), // JSON string e.g. {"durationMinutes": 30, "flowRateLpm": 45}
+  status: text("status").default("PENDING").notNull(), // 'PENDING' | 'DISPATCHED' | 'ACKNOWLEDGED' | 'EXECUTED' | 'FAILED'
+  requestedByUserId: text("requested_by_user_id").notNull(),
+  dispatchedAt: timestamp("dispatched_at"),
+  acknowledgedAt: timestamp("acknowledged_at"),
+  executedAt: timestamp("executed_at"),
+  failureReason: text("failure_reason"),
+  deviceAckPayload: text("device_ack_payload"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

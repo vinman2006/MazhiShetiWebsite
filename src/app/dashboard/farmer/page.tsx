@@ -31,6 +31,7 @@ import {
   MapPin,
   TrendingUp,
   Cpu,
+  FlaskConical,
   LayoutDashboard,
   Activity,
   Trees,
@@ -137,6 +138,8 @@ export default function FarmerDashboard() {
   const navItems = [
     { label: "Dashboard Overview", href: "/dashboard/farmer", icon: LayoutDashboard },
     { label: "My Farm & Fields", href: "/dashboard/farmer/my-farm", icon: Trees, badge: `${farms.length}` },
+    { label: "Soil Health & Lab", href: "/dashboard/farmer/soil-health", icon: FlaskConical },
+    { label: "Smart Devices & Valves", href: "/dashboard/farmer/devices", icon: Cpu, badge: `${data.devices?.length || 5}` },
     { label: "Deep Root Telemetry", href: "/sensors", icon: Activity, badge: "Live" },
     { label: "Produce Mandi", href: "/marketplace", icon: ShoppingBag },
     { label: "Machinery Fleet", href: "/rentals", icon: Wrench },
