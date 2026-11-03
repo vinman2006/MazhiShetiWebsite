@@ -635,6 +635,118 @@ export interface BuyerProfileRecord {
   procurementCapacityTons: number;
 }
 
+// =========================================================================
+// PHASE 8 INTERFACES: FINANCIAL SERVICES, LOAN UNDERWRITING & BANKING
+// =========================================================================
+
+export interface FinancialInstitutionRecord {
+  id: string;
+  name: string;
+  institutionType: "public_sector_bank" | "regional_rural_bank" | "cooperative_bank" | "nbfc_mfi";
+  rbiRegistrationCode: string;
+  headquartersAddress: string;
+  nodalOfficerName: string;
+  contactPhone: string;
+  contactEmail: string;
+  isActive: boolean;
+}
+
+export interface FinancialProductRecord {
+  id: string;
+  institutionId: string;
+  institutionName: string;
+  productName: string;
+  category: "crop_loan" | "equipment_loan" | "irrigation_loan" | "infrastructure_loan" | "warehouse_receipt_loan";
+  interestRatePct: number;
+  subventionPct: number;
+  effectiveInterestRatePct: number; // e.g. 4% for KCC after subvention
+  minAmount: number;
+  maxAmount: number;
+  maxTenureMonths: number;
+  eligibilityCriteria: string;
+  requiredDocuments: string[];
+  processingFeePct: number;
+  isGovtSponsored: boolean;
+  description: string;
+}
+
+export interface LoanDocumentItem {
+  id: string;
+  documentType:
+    | "7_12_extract"
+    | "8a_holding_certificate"
+    | "aadhaar_card"
+    | "pan_card"
+    | "bank_passbook"
+    | "soil_health_card"
+    | "machinery_quotation"
+    | "crop_sowing_declaration";
+  documentName: string;
+  fileUrl: string;
+  verificationStatus: "uploaded" | "verified_authentic" | "rejected_unclear" | "resubmission_needed";
+  verifiedAt?: string;
+  verifiedByOfficer?: string;
+  notes?: string;
+}
+
+export interface LoanApplicationRecord {
+  id: string;
+  farmerId: string;
+  farmerName: string;
+  farmerPhone: string;
+  productId: string;
+  productName: string;
+  institutionId: string;
+  institutionName: string;
+  category: string;
+  requestedAmount: number;
+  sanctionedAmount?: number;
+  tenureMonths: number;
+  interestRatePct: number;
+  farmAreaAcres: number;
+  cropCycleOrPurpose: string;
+  status:
+    | "submitted"
+    | "under_scrutiny"
+    | "documents_verified"
+    | "field_inspection_scheduled"
+    | "credit_approved"
+    | "disbursed"
+    | "rejected"
+    | "additional_info_requested";
+  bankNotes?: string;
+  rejectionReason?: string;
+  sanctionLetterUrl?: string;
+  documents: LoanDocumentItem[];
+  appliedDate: string;
+  updatedAt: string;
+}
+
+export interface LoanReviewRecord {
+  id: string;
+  applicationId: string;
+  reviewerId: string;
+  reviewerName: string;
+  cibilOrCreditScore: number;
+  landValuationRupees: number;
+  cropRiskAssessment: "low_risk_irrigated" | "moderate_risk_rainfed" | "high_risk_drought_prone";
+  fieldVisitCompleted: boolean;
+  internalAppraisalNotes: string;
+  recommendation: "recommend_approval" | "recommend_rejection" | "seek_collateral_guarantee";
+  decisionDate: string;
+}
+
+export interface UserConsentRecord {
+  id: string;
+  userId: string;
+  applicationId?: string;
+  consentType: "cibil_credit_bureau_check" | "land_record_mahabhulekh_verification" | "aadhaar_ekyc_agreement";
+  consentText: string;
+  isGranted: boolean;
+  ipAddress: string;
+  grantedAt: string;
+}
+
 export interface SeedData {
   users: Array<{
     id: string;
@@ -767,6 +879,12 @@ export interface SeedData {
   buyerProfiles: BuyerProfileRecord[];
   paymentTransactions: PaymentTransactionRecord[];
   deliveryRecords: DeliveryRecordItem[];
+  // Phase 8: Financial Institutions, Products, Applications, Reviews & Consents
+  financialInstitutions: FinancialInstitutionRecord[];
+  financialProducts: FinancialProductRecord[];
+  loanApplications: LoanApplicationRecord[];
+  loanReviews: LoanReviewRecord[];
+  userConsents: UserConsentRecord[];
 }
 
 export const initialSeedData: SeedData = {
@@ -2801,6 +2919,351 @@ export const initialSeedData: SeedData = {
       dispatchGatePass: "GP-NSK-1092",
       status: "in_transit",
       createdAt: "2026-11-02 14:05",
+    },
+  ],
+  // Phase 8: Financial Institutions, Products, Applications, Reviews & Consents
+  financialInstitutions: [
+    {
+      id: "fi_01",
+      name: "Bank of Maharashtra",
+      institutionType: "public_sector_bank",
+      rbiRegistrationCode: "MAHB00001",
+      headquartersAddress: "Lokmangal, 1501 Shivajinagar, Pune 411005",
+      nodalOfficerName: "Shri Sunil Dinkar Deshmukh (GM - Agri Credit)",
+      contactPhone: "+91 20 2553 2731",
+      contactEmail: "agri.credit@mahabank.co.in",
+      isActive: true,
+    },
+    {
+      id: "fi_02",
+      name: "Vidarbha Konkan Gramin Bank (VKGB)",
+      institutionType: "regional_rural_bank",
+      rbiRegistrationCode: "VKGB00010",
+      headquartersAddress: "Chandraprastha Building, Deopur, Dhule & Wardha Regional Office",
+      nodalOfficerName: "Smt. Manjusha Joshi (Chief Regional Manager)",
+      contactPhone: "+91 7152 245100",
+      contactEmail: "loans.wardha@vkgb.co.in",
+      isActive: true,
+    },
+    {
+      id: "fi_03",
+      name: "State Bank of India (SBI Agri Commercial Hub)",
+      institutionType: "public_sector_bank",
+      rbiRegistrationCode: "SBIN0000300",
+      headquartersAddress: "State Bank Bhavan, Madame Cama Road, Nariman Point, Mumbai",
+      nodalOfficerName: "Shri Ravindra Wagh (Chief Manager - Agri Banking)",
+      contactPhone: "+91 22 2274 0841",
+      contactEmail: "agri.mumbai@sbi.co.in",
+      isActive: true,
+    },
+    {
+      id: "fi_04",
+      name: "NABARD Agri Refinance Cell",
+      institutionType: "public_sector_bank",
+      rbiRegistrationCode: "NABARD0001",
+      headquartersAddress: "Bandra Kurla Complex, Bandra (East), Mumbai 400051",
+      nodalOfficerName: "Dr. K. S. Rao (Chief General Manager)",
+      contactPhone: "+91 22 2653 9895",
+      contactEmail: "mumbai@nabard.org",
+      isActive: true,
+    },
+  ],
+  financialProducts: [
+    {
+      id: "prod_loan_01",
+      institutionId: "fi_01",
+      institutionName: "Bank of Maharashtra",
+      productName: "Kisan Credit Card (KCC) Crop Working Capital Loan",
+      category: "crop_loan",
+      interestRatePct: 7.0,
+      subventionPct: 3.0,
+      effectiveInterestRatePct: 4.0,
+      minAmount: 25000,
+      maxAmount: 300000,
+      maxTenureMonths: 12,
+      eligibilityCriteria: "Owner-cultivator or recorded tenant farmer cultivating notified Kharif/Rabi crops with valid 7/12 extract.",
+      requiredDocuments: [
+        "7/12 Land Record Extract",
+        "8A Holding Certificate",
+        "Aadhaar Card",
+        "PAN Card",
+        "Bank Passbook",
+        "Crop Sowing Declaration",
+      ],
+      processingFeePct: 0.0,
+      isGovtSponsored: true,
+      description: "Concessional revolving credit at 4% effective interest upon prompt annual repayment. Covers seed, fertilizer, pesticide, harvesting and post-harvest maintenance costs.",
+    },
+    {
+      id: "prod_loan_02",
+      institutionId: "fi_03",
+      institutionName: "State Bank of India",
+      productName: "PM-KUSUM Component-B Standalone Solar Irrigation Pump",
+      category: "irrigation_loan",
+      interestRatePct: 6.8,
+      subventionPct: 0.0,
+      effectiveInterestRatePct: 6.8,
+      minAmount: 80000,
+      maxAmount: 450000,
+      maxTenureMonths: 60,
+      eligibilityCriteria: "Farmers with verified borewell/open well with perennial water source and no existing grid connection (MEDA verified).",
+      requiredDocuments: [
+        "7/12 Extract showing water source",
+        "Groundwater Survey Certificate",
+        "Quotation from MEDA Empanelled Solar Vendor",
+        "Electricity Non-Availability Certificate",
+      ],
+      processingFeePct: 0.5,
+      isGovtSponsored: true,
+      description: "60% government subsidy (30% Central + 30% State MEDA), with 30% bank term loan and only 10% farmer beneficiary contribution. High efficiency 3HP/5HP/7.5HP AC surface or submersible pump.",
+    },
+    {
+      id: "prod_loan_03",
+      institutionId: "fi_02",
+      institutionName: "Vidarbha Konkan Gramin Bank",
+      productName: "Tractor & Farm Mechanization Term Loan",
+      category: "equipment_loan",
+      interestRatePct: 8.5,
+      subventionPct: 0.0,
+      effectiveInterestRatePct: 8.5,
+      minAmount: 150000,
+      maxAmount: 1200000,
+      maxTenureMonths: 84,
+      eligibilityCriteria: "Minimum 3 acres of irrigated agricultural land, valid driving license, clean credit history.",
+      requiredDocuments: [
+        "Proforma Invoice from Authorized Dealer",
+        "7/12 Extract & 8A Khata",
+        "6 Months Bank Statement",
+        "Aadhaar & PAN KYC",
+      ],
+      processingFeePct: 1.0,
+      isGovtSponsored: false,
+      description: "Finance up to 85% of on-road tractor cost, combine harvester, or laser leveler with seasonal repayment schedules mapped to post-harvest cycles.",
+    },
+    {
+      id: "prod_loan_04",
+      institutionId: "fi_01",
+      institutionName: "Bank of Maharashtra",
+      productName: "Agri Infrastructure Fund (AIF) Packhouse & Cold Storage",
+      category: "infrastructure_loan",
+      interestRatePct: 8.5,
+      subventionPct: 3.0,
+      effectiveInterestRatePct: 5.5,
+      minAmount: 500000,
+      maxAmount: 20000000,
+      maxTenureMonths: 120,
+      eligibilityCriteria: "Individual farmers, FPOs, and agri-entrepreneurs setting up primary processing, grading, sorting, or cold storage.",
+      requiredDocuments: [
+        "Detailed Project Report (DPR)",
+        "Land Title Deed / Non-Agriculture (NA) Sanction",
+        "Civil Construction Plan & Quotation",
+        "FPO Registration or KYC",
+      ],
+      processingFeePct: 0.5,
+      isGovtSponsored: true,
+      description: "3% interest subvention for 7 years on term loans up to ₹2 Crore, with credit guarantee coverage under CGTMSE paid by central government.",
+    },
+    {
+      id: "prod_loan_05",
+      institutionId: "fi_03",
+      institutionName: "State Bank of India",
+      productName: "Electronic Warehouse Receipt (e-NWR) Pledge Loan",
+      category: "warehouse_receipt_loan",
+      interestRatePct: 7.2,
+      subventionPct: 0.0,
+      effectiveInterestRatePct: 7.2,
+      minAmount: 50000,
+      maxAmount: 2500000,
+      maxTenureMonths: 9,
+      eligibilityCriteria: "Farmers holding electronic warehouse receipts (e-NWR) issued by WDRA accredited warehouses for harvested produce.",
+      requiredDocuments: [
+        "e-NWR Electronic Warehouse Receipt",
+        "Commodity Quality & Assaying Certificate",
+        "Applicant KYC & 7/12 Extract",
+      ],
+      processingFeePct: 0.25,
+      isGovtSponsored: true,
+      description: "Prevent distress selling of harvest by pledging warehouse receipts for immediate liquidity up to 75% of commodity market value.",
+    },
+  ],
+  loanApplications: [
+    {
+      id: "app_kcc_01",
+      farmerId: "usr_farmer_01",
+      farmerName: "Rameshwar Sadashiv Shinde",
+      farmerPhone: "+91 98223 41092",
+      productId: "prod_loan_01",
+      productName: "Kisan Credit Card (KCC) Crop Working Capital Loan",
+      institutionId: "fi_01",
+      institutionName: "Bank of Maharashtra",
+      category: "crop_loan",
+      requestedAmount: 250000,
+      sanctionedAmount: 250000,
+      tenureMonths: 12,
+      interestRatePct: 4.0,
+      farmAreaAcres: 12.5,
+      cropCycleOrPurpose: "Kharif Cotton & Soybean Cultivation (Seed, Biofertilizers & Tillage)",
+      status: "credit_approved",
+      bankNotes: "CIBIL Score 745. Verified 12.5 acres title with Mahabhulekh. Credit committee sanctioned full requested limit at 4% concessional rate.",
+      sanctionLetterUrl: "/docs/sanction_letters/KCC_MAHB_2026_0912.pdf",
+      documents: [
+        {
+          id: "doc_01",
+          documentType: "7_12_extract",
+          documentName: "Satbara_Gat_142_144_Ashti.pdf",
+          fileUrl: "/docs/satbara_sample.pdf",
+          verificationStatus: "verified_authentic",
+          verifiedAt: "2026-10-23",
+          verifiedByOfficer: "Sunil Deshmukh (Lead Agri Credit Officer)",
+          notes: "Verified against Maharashtra Land Revenue records",
+        },
+        {
+          id: "doc_02",
+          documentType: "8a_holding_certificate",
+          documentName: "Khata_Extract_8A_Wardha.pdf",
+          fileUrl: "/docs/khata_sample.pdf",
+          verificationStatus: "verified_authentic",
+          verifiedAt: "2026-10-23",
+          verifiedByOfficer: "Sunil Deshmukh",
+        },
+        {
+          id: "doc_03",
+          documentType: "aadhaar_card",
+          documentName: "Aadhaar_UIDAI_Masked.pdf",
+          fileUrl: "/docs/aadhaar_masked.pdf",
+          verificationStatus: "verified_authentic",
+          verifiedAt: "2026-10-23",
+          verifiedByOfficer: "Sunil Deshmukh",
+        },
+      ],
+      appliedDate: "2026-10-22",
+      updatedAt: "2026-10-24",
+    },
+    {
+      id: "app_kusum_02",
+      farmerId: "usr_farmer_01",
+      farmerName: "Rameshwar Sadashiv Shinde",
+      farmerPhone: "+91 98223 41092",
+      productId: "prod_loan_02",
+      productName: "PM-KUSUM Component-B Standalone Solar Irrigation Pump",
+      institutionId: "fi_03",
+      institutionName: "State Bank of India",
+      category: "irrigation_loan",
+      requestedAmount: 210000,
+      tenureMonths: 60,
+      interestRatePct: 6.8,
+      farmAreaAcres: 12.5,
+      cropCycleOrPurpose: "5HP Solar Submersible Pump on West Borewell Parcel B",
+      status: "field_inspection_scheduled",
+      bankNotes: "MEDA subsidy allocation reference approved. Technical field engineer visit scheduled for borewell discharge yield test on 06-Nov-2026.",
+      documents: [
+        {
+          id: "doc_04",
+          documentType: "7_12_extract",
+          documentName: "Satbara_Water_Source_Certificate.pdf",
+          fileUrl: "/docs/satbara_sample.pdf",
+          verificationStatus: "verified_authentic",
+          verifiedAt: "2026-10-28",
+          verifiedByOfficer: "Ravindra Wagh (SBI Agri Hub)",
+        },
+        {
+          id: "doc_05",
+          documentType: "machinery_quotation",
+          documentName: "Jain_Solar_5HP_Quotation_MEDA.pdf",
+          fileUrl: "/docs/jain_solar_quote.pdf",
+          verificationStatus: "verified_authentic",
+          verifiedAt: "2026-10-28",
+          verifiedByOfficer: "Ravindra Wagh",
+        },
+      ],
+      appliedDate: "2026-10-27",
+      updatedAt: "2026-10-29",
+    },
+    {
+      id: "app_trac_03",
+      farmerId: "usr_farmer_02",
+      farmerName: "Dnyaneshwar Babanrao Patil",
+      farmerPhone: "+91 98221 88301",
+      productId: "prod_loan_03",
+      productName: "Tractor & Farm Mechanization Term Loan",
+      institutionId: "fi_02",
+      institutionName: "Vidarbha Konkan Gramin Bank",
+      category: "equipment_loan",
+      requestedAmount: 650000,
+      tenureMonths: 84,
+      interestRatePct: 8.5,
+      farmAreaAcres: 8.0,
+      cropCycleOrPurpose: "Mahindra 575 DI 45HP Tractor with Multi-Speed Rotavator",
+      status: "under_scrutiny",
+      bankNotes: "Application received. Dealer proforma invoice verified. Credit bureau evaluation in progress.",
+      documents: [
+        {
+          id: "doc_06",
+          documentType: "machinery_quotation",
+          documentName: "Mahindra_Tractor_Proforma_Dealer.pdf",
+          fileUrl: "/docs/mahindra_quote.pdf",
+          verificationStatus: "uploaded",
+        },
+        {
+          id: "doc_07",
+          documentType: "7_12_extract",
+          documentName: "Satbara_Nashik_Niphad.pdf",
+          fileUrl: "/docs/satbara_sample.pdf",
+          verificationStatus: "uploaded",
+        },
+      ],
+      appliedDate: "2026-11-01",
+      updatedAt: "2026-11-02",
+    },
+  ],
+  loanReviews: [
+    {
+      id: "rev_01",
+      applicationId: "app_kcc_01",
+      reviewerId: "usr_banker_01",
+      reviewerName: "Sunil Deshmukh (Lead Agri Credit Officer)",
+      cibilOrCreditScore: 745,
+      landValuationRupees: 3200000,
+      cropRiskAssessment: "low_risk_irrigated",
+      fieldVisitCompleted: true,
+      internalAppraisalNotes: "Applicant holds clean 12.5 acres unencumbered black cotton soil with perennial well. Historical repayment track record is immaculate. Recommended for full KCC sanction.",
+      recommendation: "recommend_approval",
+      decisionDate: "2026-10-24",
+    },
+    {
+      id: "rev_02",
+      applicationId: "app_kusum_02",
+      reviewerId: "usr_banker_01",
+      reviewerName: "Ravindra Wagh (Chief Manager - Agri Banking)",
+      cibilOrCreditScore: 745,
+      landValuationRupees: 3200000,
+      cropRiskAssessment: "low_risk_irrigated",
+      fieldVisitCompleted: false,
+      internalAppraisalNotes: "MEDA subsidy allocation confirmed under PM-KUSUM Component-B. Field visit scheduled for borewell yield test before final sanction.",
+      recommendation: "recommend_approval",
+      decisionDate: "2026-10-29",
+    },
+  ],
+  userConsents: [
+    {
+      id: "con_01",
+      userId: "usr_farmer_01",
+      applicationId: "app_kcc_01",
+      consentType: "cibil_credit_bureau_check",
+      consentText: "I hereby give my explicit digital consent to Bank of Maharashtra and Mazhi Sheti to pull and review my credit information from TransUnion CIBIL / Experian for evaluating my agricultural credit application.",
+      isGranted: true,
+      ipAddress: "49.36.128.45",
+      grantedAt: "2026-10-22 10:14",
+    },
+    {
+      id: "con_02",
+      userId: "usr_farmer_01",
+      applicationId: "app_kcc_01",
+      consentType: "land_record_mahabhulekh_verification",
+      consentText: "I authorize institutional lenders to fetch, verify, and monitor my land record title details from Mahabhulekh (Revenue Department, Government of Maharashtra).",
+      isGranted: true,
+      ipAddress: "49.36.128.45",
+      grantedAt: "2026-10-22 10:15",
     },
   ],
 };

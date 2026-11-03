@@ -867,3 +867,120 @@ export const deliveryRecords = pgTable("delivery_records", {
   status: text("status").default("scheduled").notNull(), // 'scheduled' | 'loaded_at_farm' | 'in_transit' | 'arrived_at_destination' | 'quality_inspected' | 'accepted' | 'rejected'
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+
+// =========================================================================
+// PHASE 8: AGRICULTURAL FINANCIAL SERVICES & INSTITUTIONAL UNDERWRITING
+// =========================================================================
+
+// 52. Financial Institutions
+export const financialInstitutions = pgTable("financial_institutions", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(), // e.g. "Bank of Maharashtra", "State Bank of India - Agri Cell", "Vidarbha Konkan Gramin Bank"
+  institutionType: text("institution_type").notNull(), // 'public_sector_bank' | 'regional_rural_bank' | 'cooperative_bank' | 'nbfc_mfi'
+  rbiRegistrationCode: text("rbi_registration_code"),
+  headquartersAddress: text("headquarters_address").notNull(),
+  nodalOfficerName: text("nodal_officer_name").notNull(),
+  contactPhone: text("contact_phone").notNull(),
+  contactEmail: text("contact_email").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 53. Financial Products & Loan Schemes Catalog
+export const financialProducts = pgTable("financial_products", {
+  id: text("id").primaryKey(),
+  institutionId: text("institution_id").references(() => financialInstitutions.id, { onDelete: "cascade" }).notNull(),
+  productName: text("product_name").notNull(), // e.g. "Kisan Credit Card (KCC) Crop Loan", "PM-KUSUM Solar Water Pump Financing"
+  category: text("category").notNull(), // 'crop_loan' | 'equipment_loan' | 'irrigation_loan' | 'infrastructure_loan' | 'warehouse_receipt_loan'
+  interestRatePct: numeric("interest_rate_pct").notNull(), // e.g. 4.0 or 8.5
+  subventionPct: numeric("subvention_pct").default("3.0"), // Government subsidy rebate
+  minAmount: numeric("min_amount").notNull(),
+  maxAmount: numeric("max_amount").notNull(),
+  maxTenureMonths: integer("max_tenure_months").notNull(),
+  eligibilityCriteria: text("eligibility_criteria").notNull(),
+  requiredDocumentsList: text("required_documents_list").notNull(), // JSON array string
+  processingFeePct: numeric("processing_fee_pct").default("0.0"),
+  isGovtSponsored: boolean("is_govt_sponsored").default(true).notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 54. Loan Applications
+export const loanApplications = pgTable("loan_applications", {
+  id: text("id").primaryKey(),
+  farmerId: text("farmer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  farmerName: text("farmer_name").notNull(),
+  farmerPhone: text("farmer_phone").notNull(),
+  productId: text("product_id").references(() => financialProducts.id, { onDelete: "cascade" }).notNull(),
+  productName: text("product_name").notNull(),
+  institutionId: text("institution_id").references(() => financialInstitutions.id, { onDelete: "cascade" }).notNull(),
+  institutionName: text("institution_name").notNull(),
+  category: text("category").notNull(),
+  requestedAmount: numeric("requested_amount").notNull(),
+  sanctionedAmount: numeric("sanctioned_amount"),
+  tenureMonths: integer("tenure_months").notNull(),
+  interestRatePct: numeric("interest_rate_pct").notNull(),
+  farmAreaAcres: numeric("farm_area_acres").notNull(),
+  cropCycleOrPurpose: text("crop_cycle_or_purpose").notNull(),
+  status: text("status").default("submitted").notNull(), // 'submitted' | 'under_scrutiny' | 'documents_verified' | 'field_inspection_scheduled' | 'credit_approved' | 'disbursed' | 'rejected' | 'additional_info_requested'
+  assignedOfficerId: text("assigned_officer_id").references(() => users.id, { onDelete: "set null" }),
+  rejectionReason: text("rejection_reason"),
+  sanctionLetterUrl: text("sanction_letter_url"),
+  consentId: text("consent_id"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 55. Loan Documents (Uploaded financial verification records)
+export const loanDocuments = pgTable("loan_documents", {
+  id: text("id").primaryKey(),
+  applicationId: text("application_id").references(() => loanApplications.id, { onDelete: "cascade" }).notNull(),
+  documentType: text("document_type").notNull(), // '7_12_extract' | '8a_holding_certificate' | 'aadhaar_card' | 'pan_card' | 'bank_passbook' | 'soil_health_card' | 'machinery_quotation'
+  documentName: text("document_name").notNull(),
+  fileUrl: text("file_url").notNull(),
+  verificationStatus: text("verification_status").default("uploaded").notNull(), // 'uploaded' | 'verified_authentic' | 'rejected_unclear' | 'resubmission_needed'
+  verifiedAt: timestamp("verified_at"),
+  verifiedByOfficer: text("verified_by_officer"),
+  notes: text("notes"),
+  uploadedAt: timestamp("uploaded_at").defaultNow().notNull(),
+});
+
+// 56. Loan Reviews (Bank Credit Appraisal Dossier)
+export const loanReviews = pgTable("loan_reviews", {
+  id: text("id").primaryKey(),
+  applicationId: text("application_id").references(() => loanApplications.id, { onDelete: "cascade" }).notNull(),
+  reviewerId: text("reviewer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  reviewerName: text("reviewer_name").notNull(),
+  cibilOrCreditScore: integer("cibil_or_credit_score"), // 300 - 900
+  landValuationRupees: numeric("land_valuation_rupees"),
+  cropRiskAssessment: text("crop_risk_assessment").default("low_risk_irrigated").notNull(), // 'low_risk_irrigated' | 'moderate_risk_rainfed' | 'high_risk_drought_prone'
+  fieldVisitCompleted: boolean("field_visit_completed").default(false).notNull(),
+  internalAppraisalNotes: text("internal_appraisal_notes").notNull(),
+  recommendation: text("recommendation").default("recommend_approval").notNull(), // 'recommend_approval' | 'recommend_rejection' | 'seek_collateral_guarantee'
+  decisionDate: timestamp("decision_date").defaultNow().notNull(),
+});
+
+// 57. Application Status History (Complete audit trail)
+export const applicationStatusHistory = pgTable("application_status_history", {
+  id: text("id").primaryKey(),
+  applicationId: text("application_id").references(() => loanApplications.id, { onDelete: "cascade" }).notNull(),
+  previousStatus: text("previous_status").notNull(),
+  newStatus: text("new_status").notNull(),
+  changedByUserId: text("changed_by_user_id").notNull(),
+  changeRole: text("change_role").notNull(),
+  comments: text("comments").notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+});
+
+// 58. User Consents (Digital mandate for bureau checks & land verification)
+export const userConsents = pgTable("user_consents", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  applicationId: text("application_id"),
+  consentType: text("consent_type").notNull(), // 'cibil_credit_bureau_check' | 'land_record_mahabhulekh_verification' | 'aadhaar_ekyc_agreement'
+  consentText: text("consent_text").notNull(),
+  isGranted: boolean("is_granted").default(true).notNull(),
+  ipAddress: text("ip_address").default("127.0.0.1").notNull(),
+  grantedAt: timestamp("granted_at").defaultNow().notNull(),
+});

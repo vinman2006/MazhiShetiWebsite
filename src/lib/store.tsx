@@ -33,6 +33,12 @@ import {
   PaymentTransactionRecord,
   DeliveryRecordItem,
   BuyerProfileRecord,
+  FinancialInstitutionRecord,
+  FinancialProductRecord,
+  LoanApplicationRecord,
+  LoanDocumentItem,
+  LoanReviewRecord,
+  UserConsentRecord,
 } from "@/db/seed-data";
 
 export type RoleType =
@@ -167,9 +173,28 @@ interface AppStateContextType {
   verifyPayment: (orderId: string, transactionId: string, signature: string) => boolean;
   releaseEscrowPayment: (orderId: string) => void;
   updateDeliveryTracking: (delivery: Omit<DeliveryRecordItem, "id" | "createdAt">) => void;
+  // Phase 8: Financial Services, Loan Applications, Reviews & Documents
+  applyForLoan: (
+    application: Omit<LoanApplicationRecord, "id" | "status" | "appliedDate" | "updatedAt">,
+    consentGranted: boolean
+  ) => LoanApplicationRecord;
+  updateLoanStatus: (
+    applicationId: string,
+    status: LoanApplicationRecord["status"],
+    notes?: string,
+    sanctionedAmount?: number
+  ) => void;
+  addLoanDocument: (applicationId: string, document: Omit<LoanDocumentItem, "id">) => void;
+  verifyLoanDocument: (
+    applicationId: string,
+    documentId: string,
+    status: LoanDocumentItem["verificationStatus"],
+    notes?: string
+  ) => void;
+  recordLoanReview: (review: Omit<LoanReviewRecord, "id" | "decisionDate">) => void;
 }
 
-const STORAGE_KEY = "mazhi_sheti_state_v7";
+const STORAGE_KEY = "mazhi_sheti_state_v8";
 const ONBOARDING_KEY = "mazhi_sheti_onboarding_v3";
 
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
@@ -1129,6 +1154,125 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  // ================= PHASE 8: AGRICULTURAL FINANCIAL SERVICES & BANK UNDERWRITING =================
+
+  const applyForLoan = (
+    application: Omit<LoanApplicationRecord, "id" | "status" | "appliedDate" | "updatedAt">,
+    consentGranted: boolean
+  ): LoanApplicationRecord => {
+    const newId = `app_${Date.now()}`;
+    const newConsent: UserConsentRecord = {
+      id: `con_${Date.now()}`,
+      userId: application.farmerId,
+      applicationId: newId,
+      consentType: "cibil_credit_bureau_check",
+      consentText: "I give my digital consent for institutional credit bureau and land record checks.",
+      isGranted: consentGranted,
+      ipAddress: "127.0.0.1",
+      grantedAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+    };
+
+    const newApp: LoanApplicationRecord = {
+      ...application,
+      id: newId,
+      status: "submitted",
+      appliedDate: new Date().toISOString().replace("T", " ").substring(0, 10),
+      updatedAt: new Date().toISOString().replace("T", " ").substring(0, 10),
+    };
+
+    saveState({
+      ...data,
+      loanApplications: [newApp, ...(data.loanApplications || [])],
+      userConsents: [newConsent, ...(data.userConsents || [])],
+    });
+    return newApp;
+  };
+
+  const updateLoanStatus = (
+    applicationId: string,
+    status: LoanApplicationRecord["status"],
+    notes?: string,
+    sanctionedAmount?: number
+  ) => {
+    const updated = (data.loanApplications || []).map((app) =>
+      app.id === applicationId
+        ? {
+            ...app,
+            status,
+            bankNotes: notes || app.bankNotes,
+            sanctionedAmount: sanctionedAmount !== undefined ? sanctionedAmount : app.sanctionedAmount,
+            updatedAt: new Date().toISOString().replace("T", " ").substring(0, 10),
+          }
+        : app
+    );
+    saveState({
+      ...data,
+      loanApplications: updated,
+    });
+  };
+
+  const addLoanDocument = (applicationId: string, document: Omit<LoanDocumentItem, "id">) => {
+    const newDoc: LoanDocumentItem = {
+      ...document,
+      id: `doc_${Date.now()}`,
+    };
+    const updated = (data.loanApplications || []).map((app) =>
+      app.id === applicationId
+        ? {
+            ...app,
+            documents: [...(app.documents || []), newDoc],
+            updatedAt: new Date().toISOString().replace("T", " ").substring(0, 10),
+          }
+        : app
+    );
+    saveState({
+      ...data,
+      loanApplications: updated,
+    });
+  };
+
+  const verifyLoanDocument = (
+    applicationId: string,
+    documentId: string,
+    verificationStatus: LoanDocumentItem["verificationStatus"],
+    notes?: string
+  ) => {
+    const updated = (data.loanApplications || []).map((app) => {
+      if (app.id !== applicationId) return app;
+      const updatedDocs = (app.documents || []).map((doc) =>
+        doc.id === documentId
+          ? {
+              ...doc,
+              verificationStatus,
+              verifiedAt: new Date().toISOString().replace("T", " ").substring(0, 10),
+              notes: notes || doc.notes,
+            }
+          : doc
+      );
+      return {
+        ...app,
+        documents: updatedDocs,
+        updatedAt: new Date().toISOString().replace("T", " ").substring(0, 10),
+      };
+    });
+    saveState({
+      ...data,
+      loanApplications: updated,
+    });
+  };
+
+  const recordLoanReview = (review: Omit<LoanReviewRecord, "id" | "decisionDate">) => {
+    const newReview: LoanReviewRecord = {
+      ...review,
+      id: `rev_${Date.now()}`,
+      decisionDate: new Date().toISOString().replace("T", " ").substring(0, 10),
+    };
+    saveState({
+      ...data,
+      loanReviews: [newReview, ...(data.loanReviews || [])],
+    });
+  };
+
   return (
     <AppStateContext.Provider
       value={{
@@ -1188,6 +1332,11 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         verifyPayment,
         releaseEscrowPayment,
         updateDeliveryTracking,
+        applyForLoan,
+        updateLoanStatus,
+        addLoanDocument,
+        verifyLoanDocument,
+        recordLoanReview,
       }}
     >
       {children}
