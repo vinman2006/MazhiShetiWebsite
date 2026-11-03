@@ -1,42 +1,46 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import { initialSeedData, SeedData } from "@/db/seed-data";
+import {
+  initialSeedData,
+  SeedData,
+  FarmRecord,
+  FarmFieldRecord,
+  CropCycleRecord,
+  FarmActivityRecord,
+  CropObservationRecord,
+  HarvestRecordItem,
+} from "@/db/seed-data";
 
 export type RoleType =
   | "farmer"
   | "equipment_provider"
   | "service_provider"
-  | "provider" // alias
+  | "provider"
   | "buyer"
   | "expert"
   | "banker"
   | "admin";
 
 export interface FarmerOnboardingData {
-  // Step 1: Personal
   fullName: string;
   phone: string;
   email: string;
   avatarUrl: string;
   preferredLanguage: "mr" | "hi" | "en";
-  // Step 2: Location
   state: string;
   district: string;
   taluka: string;
   village: string;
   pinCode: string;
   gpsCoords?: string;
-  // Step 3: Farm info
   totalLandAcres: number;
   ownershipType: "owned" | "leased" | "joint_family";
   numberOfFields: number;
   mainCrops: string[];
   irrigationAvailability: "drip" | "sprinkler" | "well" | "canal" | "rainfed";
-  // Step 4: Practices
   farmingPractice: "conventional" | "organic" | "transitioning" | "natural_zbnf" | "no_till";
   soilHealthTestingFrequency: string;
-  // Meta
   currentStep: number;
   isCompleted: boolean;
 }
@@ -74,7 +78,19 @@ interface AppStateContextType {
   setOnboardingStep: (step: number) => void;
   completeFarmerOnboarding: () => void;
   resetOnboarding: () => void;
-  // Actions
+  // Phase 3 Farm & Field Operations
+  addFarm: (farm: Omit<FarmRecord, "id">) => void;
+  editFarm: (id: string, farm: Partial<FarmRecord>) => void;
+  deleteFarm: (id: string) => void;
+  addField: (field: Omit<FarmFieldRecord, "id">) => void;
+  editField: (id: string, field: Partial<FarmFieldRecord>) => void;
+  deleteField: (id: string) => void;
+  addCropCycle: (crop: Omit<CropCycleRecord, "id">) => void;
+  updateCropStage: (id: string, stage: string) => void;
+  addFarmActivity: (activity: Omit<FarmActivityRecord, "id">) => void;
+  addCropObservation: (observation: Omit<CropObservationRecord, "id">) => void;
+  addHarvestRecord: (record: Omit<HarvestRecordItem, "id">) => void;
+  // Phase 1 & 2 Actions
   triggerSensorSync: () => void;
   addConsultation: (crop: string, title: string, description: string, urgency: "low" | "medium" | "high" | "critical") => void;
   resolveConsultation: (id: string, diagnosis: string, prescription: string) => void;
@@ -84,8 +100,8 @@ interface AppStateContextType {
   updateFinanceStatus: (id: string, status: "submitted" | "under_scrutiny" | "approved" | "disbursed" | "rejected") => void;
 }
 
-const STORAGE_KEY = "mazhi_sheti_state_v2";
-const ONBOARDING_KEY = "mazhi_sheti_onboarding_v2";
+const STORAGE_KEY = "mazhi_sheti_state_v3";
+const ONBOARDING_KEY = "mazhi_sheti_onboarding_v3";
 
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
 
@@ -144,7 +160,7 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
       try {
         localStorage.setItem(ONBOARDING_KEY, JSON.stringify(updated));
       } catch (err) {
-        console.error("Onboarding storage save failed", err);
+        console.error("Onboarding save failed", err);
       }
     }
   };
@@ -178,7 +194,118 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // 1. Live Soil Sensor Read Action
+  // ================= PHASE 3 FARM & FIELD ACTIONS =================
+
+  const addFarm = (farm: Omit<FarmRecord, "id">) => {
+    const newFarm: FarmRecord = {
+      ...farm,
+      id: `farm_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      farms: [newFarm, ...data.farms],
+    });
+  };
+
+  const editFarm = (id: string, farmUpdate: Partial<FarmRecord>) => {
+    const updatedFarms = data.farms.map((f) => (f.id === id ? { ...f, ...farmUpdate } : f));
+    saveState({
+      ...data,
+      farms: updatedFarms,
+    });
+  };
+
+  const deleteFarm = (id: string) => {
+    const updatedFarms = data.farms.filter((f) => f.id !== id);
+    const updatedFields = data.fields.filter((fld) => fld.farmId !== id);
+    saveState({
+      ...data,
+      farms: updatedFarms,
+      fields: updatedFields,
+    });
+  };
+
+  const addField = (field: Omit<FarmFieldRecord, "id">) => {
+    const newField: FarmFieldRecord = {
+      ...field,
+      id: `field_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      fields: [...data.fields, newField],
+    });
+  };
+
+  const editField = (id: string, fieldUpdate: Partial<FarmFieldRecord>) => {
+    const updatedFields = data.fields.map((fld) => (fld.id === id ? { ...fld, ...fieldUpdate } : fld));
+    saveState({
+      ...data,
+      fields: updatedFields,
+    });
+  };
+
+  const deleteField = (id: string) => {
+    const updatedFields = data.fields.filter((fld) => fld.id !== id);
+    saveState({
+      ...data,
+      fields: updatedFields,
+    });
+  };
+
+  const addCropCycle = (crop: Omit<CropCycleRecord, "id">) => {
+    const newCycle: CropCycleRecord = {
+      ...crop,
+      id: `cycle_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      cropCycles: [newCycle, ...data.cropCycles],
+    });
+  };
+
+  const updateCropStage = (id: string, stage: string) => {
+    const updatedCycles = data.cropCycles.map((c) => (c.id === id ? { ...c, growthStage: stage } : c));
+    saveState({
+      ...data,
+      cropCycles: updatedCycles,
+    });
+  };
+
+  const addFarmActivity = (activity: Omit<FarmActivityRecord, "id">) => {
+    const newActivity: FarmActivityRecord = {
+      ...activity,
+      id: `act_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      farmActivities: [newActivity, ...data.farmActivities],
+    });
+  };
+
+  const addCropObservation = (observation: Omit<CropObservationRecord, "id">) => {
+    const newObs: CropObservationRecord = {
+      ...observation,
+      id: `obs_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      cropObservations: [newObs, ...data.cropObservations],
+    });
+  };
+
+  const addHarvestRecord = (record: Omit<HarvestRecordItem, "id">) => {
+    const newHarvest: HarvestRecordItem = {
+      ...record,
+      id: `hr_${Date.now()}`,
+    };
+    saveState({
+      ...data,
+      harvestRecords: [newHarvest, ...data.harvestRecords],
+    });
+  };
+
+  // ================= SENSOR & TELEMETRY ACTIONS =================
+
   const triggerSensorSync = () => {
     const randomMoisture = Number((44 + Math.random() * 8).toFixed(1));
     const randomN = Math.floor(68 + Math.random() * 10);
@@ -213,7 +340,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     saveState(updated);
   };
 
-  // 2. Submit Expert Consultation Query
   const addConsultation = (
     crop: string,
     title: string,
@@ -237,7 +363,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  // 3. Agronomist Resolves Consultation
   const resolveConsultation = (id: string, diagnosis: string, prescription: string) => {
     const updatedConsultations = data.consultations.map((c) =>
       c.id === id
@@ -255,7 +380,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  // 4. Farmer / Seller Adds Marketplace Listing
   const addMarketListing = (
     crop: string,
     variety: string,
@@ -286,7 +410,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  // 5. Farmer Books Machinery Rental
   const bookEquipment = (
     equipmentId: string,
     startDate: string,
@@ -297,7 +420,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     saveState({ ...data });
   };
 
-  // 6. Farmer Applies for Finance / Insurance
   const applyForFinance = (
     type: string,
     schemeName: string,
@@ -322,7 +444,6 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  // 7. Banker Updates Application Status
   const updateFinanceStatus = (
     id: string,
     status: "submitted" | "under_scrutiny" | "approved" | "disbursed" | "rejected"
@@ -347,6 +468,17 @@ export function AppStateProvider({ children }: { children: React.ReactNode }) {
         setOnboardingStep,
         completeFarmerOnboarding,
         resetOnboarding,
+        addFarm,
+        editFarm,
+        deleteFarm,
+        addField,
+        editField,
+        deleteField,
+        addCropCycle,
+        updateCropStage,
+        addFarmActivity,
+        addCropObservation,
+        addHarvestRecord,
         triggerSensorSync,
         addConsultation,
         resolveConsultation,

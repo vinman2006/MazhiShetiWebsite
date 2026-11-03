@@ -7,51 +7,51 @@ export const users = pgTable("users", {
   email: text("email").notNull(),
   fullName: text("full_name").notNull(),
   phone: text("phone"),
-  role: text("role").notNull().default("farmer"), // 'farmer' | 'equipment_provider' | 'service_provider' | 'buyer' | 'expert' | 'banker' | 'admin'
+  role: text("role").notNull().default("farmer"),
   avatarUrl: text("avatar_url"),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// 2. User Profiles Table (General profile details)
+// 2. User Profiles Table
 export const userProfiles = pgTable("user_profiles", {
   id: text("id").primaryKey(),
   userId: text("user_id").references(() => users.id, { onDelete: "cascade" }).notNull().unique(),
   bio: text("bio"),
-  preferredLanguage: text("preferred_language").default("mr").notNull(), // 'mr' | 'hi' | 'en'
-  nationalIdMasked: text("national_id_masked"), // e.g. Aadhar ending in 4109
-  kycStatus: text("kyc_status").default("pending").notNull(), // 'pending' | 'verified' | 'rejected'
+  preferredLanguage: text("preferred_language").default("mr").notNull(),
+  nationalIdMasked: text("national_id_masked"),
+  kycStatus: text("kyc_status").default("pending").notNull(),
   organizationName: text("organization_name"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// 3. User Roles Table (Role assignment and audit)
+// 3. User Roles Table
 export const userRoles = pgTable("user_roles", {
   id: text("id").primaryKey(),
   userId: text("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
-  role: text("role").notNull(), // 'farmer' | 'equipment_provider' | 'service_provider' | 'buyer' | 'expert' | 'banker' | 'admin'
+  role: text("role").notNull(),
   grantedAt: timestamp("granted_at").defaultNow().notNull(),
   grantedBy: text("granted_by").default("system").notNull(),
 });
 
-// 4. Farmer Profiles Table (Specialized agricultural attributes)
+// 4. Farmer Profiles Table
 export const farmerProfiles = pgTable("farmer_profiles", {
   id: text("id").primaryKey(),
   userId: text("user_id").references(() => users.id, { onDelete: "cascade" }).notNull().unique(),
-  landOwnershipType: text("land_ownership_type").notNull().default("owned"), // 'owned' | 'leased' | 'joint_family'
+  landOwnershipType: text("land_ownership_type").notNull().default("owned"),
   totalLandAcres: numeric("total_land_acres").notNull().default("0"),
   numberOfFields: integer("number_of_fields").notNull().default(1),
-  farmingPractice: text("farming_practice").notNull().default("conventional"), // 'conventional' | 'organic' | 'transitioning' | 'natural_zbnf' | 'no_till'
-  irrigationSource: text("irrigation_source").notNull().default("drip"), // 'drip' | 'sprinkler' | 'well' | 'canal' | 'rainfed'
+  farmingPractice: text("farming_practice").notNull().default("conventional"),
+  irrigationSource: text("irrigation_source").notNull().default("drip"),
   primaryCrops: text("primary_crops").default("Cotton, Soybean"),
   experienceYears: integer("experience_years").default(10),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// 5. Farmer Locations Table (Detailed geolocation & postal records)
+// 5. Farmer Locations Table
 export const farmerLocations = pgTable("farmer_locations", {
   id: text("id").primaryKey(),
   userId: text("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
@@ -65,7 +65,7 @@ export const farmerLocations = pgTable("farmer_locations", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// 6. Farms Table (Physical agricultural properties)
+// 6. Farms Table
 export const farms = pgTable("farms", {
   id: text("id").primaryKey(),
   farmerId: text("farmer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
@@ -79,40 +79,126 @@ export const farms = pgTable("farms", {
   district: text("district").notNull(),
   taluka: text("taluka").notNull(),
   village: text("village").notNull(),
+  boundariesGeoJson: text("boundaries_geojson"),
+  notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// 7. Onboarding Records Table (Multi-step state persistence)
+// 7. Onboarding Records Table
 export const onboardingRecords = pgTable("onboarding_records", {
   id: text("id").primaryKey(),
   userId: text("user_id").references(() => users.id, { onDelete: "cascade" }).notNull().unique(),
   role: text("role").notNull(),
-  currentStep: integer("current_step").default(1).notNull(), // 1, 2, 3, 4, 5
+  currentStep: integer("current_step").default(1).notNull(),
   isCompleted: boolean("is_completed").default(false).notNull(),
-  stepData: jsonb("step_data").notNull(), // Stores step 1-4 draft payload
+  stepData: jsonb("step_data").notNull(),
   completedAt: timestamp("completed_at"),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// 8. Farm Plots
-export const plots = pgTable("plots", {
+// 8. Farm Fields Table (Multiple fields per farm)
+export const farmFields = pgTable("farm_fields", {
   id: text("id").primaryKey(),
   farmId: text("farm_id").references(() => farms.id, { onDelete: "cascade" }).notNull(),
-  name: text("name").notNull(),
+  name: text("name").notNull(), // e.g. "North Acre - Gat 142/A"
   areaAcres: numeric("area_acres").notNull(),
-  currentCrop: text("current_crop").notNull(),
-  cropVariety: text("crop_variety"),
-  sowingDate: text("sowing_date").notNull(),
-  expectedHarvestDate: text("expected_harvest_date").notNull(),
-  growthStage: text("growth_stage").notNull(),
-  healthScore: integer("health_score").default(88),
+  locationNotes: text("location_notes"),
+  soilType: text("soil_type").notNull(), // 'Deep Black Cotton', 'Medium Red Loam', 'Alluvial Silt'
+  irrigationMethod: text("irrigation_method").notNull(), // 'Drip System', 'Micro-Sprinkler', 'Canal Flood', 'Rainfed'
+  soilHealthScore: integer("soil_health_score").default(85), // 0-100
+  organicCarbonPct: numeric("organic_carbon_pct").default("0.65"),
+  boundaries: text("boundaries"),
+  fieldNotes: text("field_notes"),
+  farmingHistory: text("farming_history"), // Previous crops: "Soybean (Kharif 2025) -> Chickpea (Rabi 2025)"
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 9. Crops Master Catalog
+export const crops = pgTable("crops", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(), // "Cotton", "Soybean", "Turmeric", "Banana", "Onion"
+  marathiName: text("marathi_name").notNull(), // "कापूस", "सोयाबीन", "हळद"
+  category: text("category").notNull(), // "Cash Crop", "Oilseed", "Spices", "Horticulture"
+  season: text("season").notNull(), // "Kharif", "Rabi", "Annual"
+  defaultDurationDays: integer("default_duration_days").notNull(),
+  recommendedSoilTypes: text("recommended_soil_types"),
+  npkRatioRecommendation: text("npk_ratio_recommendation"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// 9. Smart Soil Sensors
+// 10. Crop Cycles Table (Planting cycles in a field)
+export const cropCycles = pgTable("crop_cycles", {
+  id: text("id").primaryKey(),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "cascade" }).notNull(),
+  cropId: text("crop_id").references(() => crops.id, { onDelete: "set null" }),
+  cropName: text("crop_name").notNull(),
+  variety: text("variety").notNull(), // e.g. "Ajeet-155 BG-II"
+  seedBrandOrSource: text("seed_brand_or_source"), // "Mahyco Certified Seed Lot #884"
+  sowingDate: text("sowing_date").notNull(),
+  expectedHarvestDate: text("expected_harvest_date").notNull(),
+  actualHarvestDate: text("actual_harvest_date"),
+  growthStage: text("growth_stage").notNull(), // 'Sowing' | 'Vegetative' | 'Flowering' | 'Boll/Pod Formation' | 'Maturity' | 'Harvested'
+  estimatedYieldKg: numeric("estimated_yield_kg"),
+  actualYieldKg: numeric("actual_yield_kg"),
+  status: text("status").default("active").notNull(), // 'active' | 'harvested' | 'cancelled'
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// 11. Farm Activities Timeline Table
+export const farmActivities = pgTable("farm_activities", {
+  id: text("id").primaryKey(),
+  farmId: text("farm_id").references(() => farms.id, { onDelete: "cascade" }).notNull(),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "cascade" }).notNull(),
+  cropCycleId: text("crop_cycle_id").references(() => cropCycles.id, { onDelete: "set null" }),
+  activityType: text("activity_type").notNull(), // 'sowing' | 'irrigation' | 'fertilizer' | 'soil_testing' | 'pest_treatment' | 'harvesting'
+  title: text("title").notNull(),
+  description: text("description"),
+  quantity: numeric("quantity"),
+  unit: text("unit"), // 'kg', 'liters', 'hours', 'bags'
+  costIncurred: numeric("cost_incurred").default("0"),
+  performedDate: text("performed_date").notNull(),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 12. Crop Observations Table (Pest, Disease, Nutrient Deficiency logs)
+export const cropObservations = pgTable("crop_observations", {
+  id: text("id").primaryKey(),
+  cropCycleId: text("crop_cycle_id").references(() => cropCycles.id, { onDelete: "cascade" }).notNull(),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "cascade" }).notNull(),
+  observationType: text("observation_type").notNull(), // 'pest_infestation' | 'disease_symptom' | 'nutrient_deficiency' | 'weather_damage'
+  pestOrDiseaseName: text("pest_or_disease_name").notNull(), // e.g. "Jassids / Sucking Thrips", "Yellow Mosaic Virus"
+  severity: text("severity").notNull().default("medium"), // 'low' | 'medium' | 'high' | 'critical'
+  affectedAreaPct: integer("affected_area_pct").default(10),
+  observedDate: text("observed_date").notNull(),
+  treatmentTaken: text("treatment_taken"),
+  notes: text("notes"),
+  imageUrl: text("image_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 13. Harvest Records Table
+export const harvestRecords = pgTable("harvest_records", {
+  id: text("id").primaryKey(),
+  cropCycleId: text("crop_cycle_id").references(() => cropCycles.id, { onDelete: "cascade" }).notNull(),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "cascade" }).notNull(),
+  harvestDate: text("harvest_date").notNull(),
+  yieldKg: numeric("yield_kg").notNull(),
+  grade: text("grade").notNull(), // 'Grade A - Export', 'Grade B - Mandi', 'Organic Certified'
+  moistureAtHarvestPct: numeric("moisture_at_harvest_pct"),
+  storageLocation: text("storage_location"), // "Farm On-Site Shed #2", "APMC Wardha Warehouse"
+  marketPricePerKg: numeric("market_price_per_kg"),
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 14. Smart Soil Sensors
 export const soilSensors = pgTable("soil_sensors", {
   id: text("id").primaryKey(),
-  plotId: text("plot_id").references(() => plots.id, { onDelete: "set null" }),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "set null" }),
   serialNumber: text("serial_number").unique().notNull(),
   model: text("model").default("Mazhi Sheti Sensor v2.4 Pro"),
   status: text("status").default("active"),
@@ -123,11 +209,11 @@ export const soilSensors = pgTable("soil_sensors", {
   lastSyncAt: timestamp("last_sync_at").defaultNow().notNull(),
 });
 
-// 10. IoT Soil Telemetry Readings
+// 15. IoT Soil Telemetry Readings
 export const soilTelemetry = pgTable("soil_telemetry", {
   id: text("id").primaryKey(),
   sensorId: text("sensor_id").references(() => soilSensors.id, { onDelete: "cascade" }).notNull(),
-  plotId: text("plot_id").references(() => plots.id, { onDelete: "cascade" }).notNull(),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "cascade" }).notNull(),
   moisturePct: numeric("moisture_pct").notNull(),
   nitrogenPpm: numeric("nitrogen_ppm").notNull(),
   phosphorusPpm: numeric("phosphorus_ppm").notNull(),
@@ -138,12 +224,12 @@ export const soilTelemetry = pgTable("soil_telemetry", {
   recordedAt: timestamp("recorded_at").defaultNow().notNull(),
 });
 
-// 11. Consultations
+// 16. Consultations
 export const consultations = pgTable("consultations", {
   id: text("id").primaryKey(),
   farmerId: text("farmer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
   expertId: text("expert_id").references(() => users.id, { onDelete: "set null" }),
-  plotId: text("plot_id").references(() => plots.id, { onDelete: "set null" }),
+  fieldId: text("field_id").references(() => farmFields.id, { onDelete: "set null" }),
   cropName: text("crop_name").notNull(),
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -156,7 +242,7 @@ export const consultations = pgTable("consultations", {
   resolvedAt: timestamp("resolved_at"),
 });
 
-// 12. Produce Marketplace Listings
+// 17. Produce Marketplace Listings
 export const marketplaceListings = pgTable("marketplace_listings", {
   id: text("id").primaryKey(),
   sellerId: text("seller_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
@@ -173,7 +259,7 @@ export const marketplaceListings = pgTable("marketplace_listings", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// 13. Produce Marketplace Orders
+// 18. Produce Marketplace Orders
 export const marketplaceOrders = pgTable("marketplace_orders", {
   id: text("id").primaryKey(),
   listingId: text("listing_id").references(() => marketplaceListings.id, { onDelete: "cascade" }).notNull(),
@@ -186,7 +272,7 @@ export const marketplaceOrders = pgTable("marketplace_orders", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// 14. Agri-Equipment Listings
+// 19. Agri-Equipment Listings
 export const equipmentListings = pgTable("equipment_listings", {
   id: text("id").primaryKey(),
   providerId: text("provider_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
@@ -203,7 +289,7 @@ export const equipmentListings = pgTable("equipment_listings", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// 15. Machinery Rental Bookings
+// 20. Machinery Rental Bookings
 export const rentalBookings = pgTable("rental_bookings", {
   id: text("id").primaryKey(),
   equipmentId: text("equipment_id").references(() => equipmentListings.id, { onDelete: "cascade" }).notNull(),
@@ -218,7 +304,7 @@ export const rentalBookings = pgTable("rental_bookings", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// 16. Financial Applications
+// 21. Financial Applications
 export const financialApplications = pgTable("financial_applications", {
   id: text("id").primaryKey(),
   farmerId: text("farmer_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
@@ -236,7 +322,7 @@ export const financialApplications = pgTable("financial_applications", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// 17. System Audit Logs
+// 22. System Audit Logs
 export const auditLogs = pgTable("audit_logs", {
   id: text("id").primaryKey(),
   userId: text("user_id").notNull(),

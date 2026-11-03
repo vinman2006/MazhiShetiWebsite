@@ -1,10 +1,93 @@
+export interface FarmRecord {
+  id: string;
+  farmerId: string;
+  name: string;
+  totalAcres: number;
+  surveyNumber: string;
+  soilType: string;
+  irrigationSource: string;
+  waterAvailability: string;
+  village: string;
+  taluka: string;
+  district: string;
+  boundaries?: string;
+  notes?: string;
+}
+
+export interface FarmFieldRecord {
+  id: string;
+  farmId: string;
+  name: string;
+  areaAcres: number;
+  locationNotes?: string;
+  soilType: string;
+  irrigationMethod: string;
+  currentCrop: string;
+  cropVariety: string;
+  growthStage: string;
+  soilHealthScore: number;
+  organicCarbonPct: number;
+  farmingHistory: string;
+  fieldNotes: string;
+}
+
+export interface CropCycleRecord {
+  id: string;
+  fieldId: string;
+  cropName: string;
+  variety: string;
+  seedBrandOrSource: string;
+  sowingDate: string;
+  expectedHarvestDate: string;
+  growthStage: string;
+  estimatedYieldKg: number;
+  status: "active" | "harvested" | "cancelled";
+}
+
+export interface FarmActivityRecord {
+  id: string;
+  farmId: string;
+  fieldId: string;
+  fieldName: string;
+  activityType: "sowing" | "irrigation" | "fertilizer" | "soil_testing" | "pest_treatment" | "harvesting";
+  title: string;
+  description: string;
+  quantity?: number;
+  unit?: string;
+  costIncurred: number;
+  performedDate: string;
+}
+
+export interface CropObservationRecord {
+  id: string;
+  fieldId: string;
+  cropName: string;
+  observationType: "pest_infestation" | "disease_symptom" | "nutrient_deficiency" | "weather_damage";
+  pestOrDiseaseName: string;
+  severity: "low" | "medium" | "high" | "critical";
+  affectedAreaPct: number;
+  observedDate: string;
+  treatmentTaken: string;
+}
+
+export interface HarvestRecordItem {
+  id: string;
+  fieldId: string;
+  cropName: string;
+  harvestDate: string;
+  yieldKg: number;
+  grade: string;
+  marketPricePerKg: number;
+  notes: string;
+}
+
 export interface SeedData {
   users: Array<{
     id: string;
     fullName: string;
     email: string;
     phone: string;
-    role: "farmer" | "expert" | "provider" | "buyer" | "banker" | "admin";
+    role: string;
     village: string;
     taluka: string;
     district: string;
@@ -12,19 +95,8 @@ export interface SeedData {
     organizationName?: string;
     avatarUrl?: string;
   }>;
-  farms: Array<{
-    id: string;
-    farmerId: string;
-    name: string;
-    totalAcres: number;
-    surveyNumber: string;
-    soilType: string;
-    irrigationSource: string;
-    waterAvailability: string;
-    village: string;
-    taluka: string;
-    district: string;
-  }>;
+  farms: FarmRecord[];
+  fields: FarmFieldRecord[];
   plots: Array<{
     id: string;
     farmId: string;
@@ -37,6 +109,10 @@ export interface SeedData {
     growthStage: string;
     healthScore: number;
   }>;
+  cropCycles: CropCycleRecord[];
+  farmActivities: FarmActivityRecord[];
+  cropObservations: CropObservationRecord[];
+  harvestRecords: HarvestRecordItem[];
   sensors: Array<{
     id: string;
     plotId: string;
@@ -218,6 +294,58 @@ export const initialSeedData: SeedData = {
       village: "Ashti",
       taluka: "Karanja",
       district: "Wardha",
+      boundaries: "North: Canal Stream | South: Zilla Parishad Road | East: Gat 143 | West: Gat 141",
+      notes: "Certified under Maharashtra Smart Agri mission. Equipped with automated drip filtration and solar pumps.",
+    },
+  ],
+  fields: [
+    {
+      id: "field_cotton_01",
+      farmId: "farm_01",
+      name: "Field A - Desi Cotton Hybrid",
+      areaAcres: 5.5,
+      locationNotes: "North plot near farm pond",
+      soilType: "Deep Black Cotton (Regur)",
+      irrigationMethod: "Inline Drip Irrigation (1.2 LPH)",
+      currentCrop: "Cotton (कापूस)",
+      cropVariety: "Ajeet-155 BG-II",
+      growthStage: "Boll Development & Maturation",
+      soilHealthScore: 92,
+      organicCarbonPct: 0.72,
+      farmingHistory: "Soybean (Kharif 2025) -> Gram/Harbhara (Rabi 2025) -> Cotton (Kharif 2026)",
+      fieldNotes: "Targeting 14 Quintals/Acre. Foliar spray of 13:00:45 scheduled.",
+    },
+    {
+      id: "field_soybean_02",
+      farmId: "farm_01",
+      name: "Field B - Certified Soybean",
+      areaAcres: 4.0,
+      locationNotes: "Central flat bed",
+      soilType: "Medium Black Regur",
+      irrigationMethod: "Micro-Sprinklers + Rainfed",
+      currentCrop: "Soybean (सोयाबीन)",
+      cropVariety: "KDS-726 Phule Sangam",
+      growthStage: "Pod Filling Stage",
+      soilHealthScore: 86,
+      organicCarbonPct: 0.65,
+      farmingHistory: "Cotton (Kharif 2025) -> Wheat (Rabi 2025) -> Soybean (Kharif 2026)",
+      fieldNotes: "Treated with Trichoderma and Rhizobium before sowing.",
+    },
+    {
+      id: "field_turmeric_03",
+      farmId: "farm_01",
+      name: "Field C - Salem Turmeric",
+      areaAcres: 3.0,
+      locationNotes: "East ridge beds with high organic matter",
+      soilType: "Well-Drained Black Loam",
+      irrigationMethod: "Raised Bed Drip System",
+      currentCrop: "Turmeric (हळद)",
+      cropVariety: "Salem High Curcumin",
+      growthStage: "Rhizome Expansion",
+      soilHealthScore: 94,
+      organicCarbonPct: 0.82,
+      farmingHistory: "Ginger (2025) -> Turmeric (2026)",
+      fieldNotes: "Mulched with sugarcane bagasse and farmyard manure.",
     },
   ],
   plots: [
@@ -256,6 +384,136 @@ export const initialSeedData: SeedData = {
       expectedHarvestDate: "2027-02-20",
       growthStage: "Rhizome Expansion",
       healthScore: 94,
+    },
+  ],
+  cropCycles: [
+    {
+      id: "cycle_cotton_01",
+      fieldId: "field_cotton_01",
+      cropName: "Cotton (कापूस)",
+      variety: "Ajeet-155 BG-II",
+      seedBrandOrSource: "Ajeet Seeds Certified Lot #8841-MH",
+      sowingDate: "2026-06-18",
+      expectedHarvestDate: "2026-12-10",
+      growthStage: "Boll Development & Maturation",
+      estimatedYieldKg: 3800,
+      status: "active",
+    },
+    {
+      id: "cycle_soybean_02",
+      fieldId: "field_soybean_02",
+      cropName: "Soybean (सोयाबीन)",
+      variety: "KDS-726 Phule Sangam",
+      seedBrandOrSource: "Mahabeej Certified Foundation Seeds",
+      sowingDate: "2026-06-25",
+      expectedHarvestDate: "2026-10-15",
+      growthStage: "Pod Filling Stage",
+      estimatedYieldKg: 4200,
+      status: "active",
+    },
+    {
+      id: "cycle_turmeric_03",
+      fieldId: "field_turmeric_03",
+      cropName: "Turmeric (हळद)",
+      variety: "Salem High Curcumin (5.2% Curcumin)",
+      seedBrandOrSource: "PDKV Agricultural University Mother Rhizomes",
+      sowingDate: "2026-05-10",
+      expectedHarvestDate: "2027-02-20",
+      growthStage: "Rhizome Expansion",
+      estimatedYieldKg: 9500,
+      status: "active",
+    },
+  ],
+  farmActivities: [
+    {
+      id: "act_01",
+      farmId: "farm_01",
+      fieldId: "field_cotton_01",
+      fieldName: "Field A - Desi Cotton Hybrid",
+      activityType: "fertilizer",
+      title: "Potassium Nitrate (13:00:45) Foliar Application",
+      description: "Applied 1% solution for boosting boll retention and weight.",
+      quantity: 15,
+      unit: "kg",
+      costIncurred: 1850,
+      performedDate: "2026-10-28",
+    },
+    {
+      id: "act_02",
+      farmId: "farm_01",
+      fieldId: "field_cotton_01",
+      fieldName: "Field A - Desi Cotton Hybrid",
+      activityType: "irrigation",
+      title: "Automated Drip Fertigation Run",
+      description: "45-minute root zone irrigation through inline drippers.",
+      quantity: 45,
+      unit: "minutes",
+      costIncurred: 120,
+      performedDate: "2026-10-25",
+    },
+    {
+      id: "act_03",
+      farmId: "farm_01",
+      fieldId: "field_cotton_01",
+      fieldName: "Field A - Desi Cotton Hybrid",
+      activityType: "pest_treatment",
+      title: "Neem Oil Biological Spray (10,000 ppm)",
+      description: "Preventive treatment against early sucking pests (Thrips/Jassids).",
+      quantity: 2.5,
+      unit: "liters",
+      costIncurred: 950,
+      performedDate: "2026-10-20",
+    },
+    {
+      id: "act_04",
+      farmId: "farm_01",
+      fieldId: "field_soybean_02",
+      fieldName: "Field B - Certified Soybean",
+      activityType: "soil_testing",
+      title: "Mazhi Sheti IoT Sensor Calibration",
+      description: "Measured pH 6.7 and Electrical Conductivity 0.82 mS/cm.",
+      quantity: 1,
+      unit: "probe",
+      costIncurred: 0,
+      performedDate: "2026-10-15",
+    },
+    {
+      id: "act_05",
+      farmId: "farm_01",
+      fieldId: "field_turmeric_03",
+      fieldName: "Field C - Salem Turmeric",
+      activityType: "sowing",
+      title: "Rhizome Treatment & Broad-Bed Sowing",
+      description: "Trichoderma viride biological dipping followed by furrow bed planting.",
+      quantity: 400,
+      unit: "kg rhizomes",
+      costIncurred: 18400,
+      performedDate: "2026-05-10",
+    },
+  ],
+  cropObservations: [
+    {
+      id: "obs_01",
+      fieldId: "field_cotton_01",
+      cropName: "Cotton (कापूस)",
+      observationType: "pest_infestation",
+      pestOrDiseaseName: "Sucking Jassids (तुडतुडे) & Mild Leaf Curl",
+      severity: "medium",
+      affectedAreaPct: 8,
+      observedDate: "2026-10-27",
+      treatmentTaken: "Neem Oil 10,000 ppm spray applied within 24h.",
+    },
+  ],
+  harvestRecords: [
+    {
+      id: "hr_prev_01",
+      fieldId: "field_soybean_02",
+      cropName: "Soybean (Kharif 2025)",
+      harvestDate: "2025-10-18",
+      yieldKg: 3850,
+      grade: "Grade A - Clean Golden",
+      marketPricePerKg: 46.5,
+      notes: "Sold directly through Mazhi Sheti Mandi desk to APMC Vashi exporter.",
     },
   ],
   sensors: [
