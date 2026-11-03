@@ -1144,3 +1144,50 @@ export const taskHistory = pgTable("task_history", {
   remarks: text("remarks"),
   recordedAt: timestamp("recorded_at").defaultNow().notNull(),
 });
+
+
+// =========================================================================
+// PHASE 11: ROLE-SPECIFIC PORTALS, ADMINISTRATION & GOVERNANCE
+// =========================================================================
+
+// 69. System Announcements (Platform-wide broadcasts by Administrators)
+export const systemAnnouncements = pgTable("system_announcements", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull(),
+  titleMarathi: text("title_marathi").notNull(),
+  message: text("message").notNull(),
+  category: text("category").default("general").notNull(), // 'general' | 'regulatory' | 'weather_alert' | 'subsidy' | 'maintenance'
+  priority: text("priority").default("normal").notNull(), // 'low' | 'normal' | 'high' | 'urgent'
+  targetRoles: text("target_roles").default("all").notNull(), // 'all' | 'farmer' | 'provider' | 'buyer' | 'banker' | 'expert'
+  isActive: boolean("is_active").default(true).notNull(),
+  activeUntil: text("active_until"),
+  createdByUserId: text("created_by_user_id").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 70. Content Reports (Moderation queue for listings & accounts)
+export const contentReports = pgTable("content_reports", {
+  id: text("id").primaryKey(),
+  entityType: text("entity_type").notNull(), // 'produce_listing' | 'equipment_listing' | 'user_account' | 'review'
+  entityId: text("entity_id").notNull(),
+  reportedByUserId: text("reported_by_user_id").notNull(),
+  reason: text("reason").notNull(),
+  status: text("status").default("pending").notNull(), // 'pending' | 'investigating' | 'resolved_flagged' | 'dismissed'
+  resolutionNotes: text("resolution_notes"),
+  resolvedByUserId: text("resolved_by_user_id"),
+  resolvedAt: text("resolved_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// 71. Platform Categories (Taxonomies managed by Admin)
+export const platformCategories = pgTable("platform_categories", {
+  id: text("id").primaryKey(),
+  categoryType: text("category_type").notNull(), // 'crop_type' | 'equipment_type' | 'expense_head' | 'service_type'
+  code: text("code").notNull(),
+  name: text("name").notNull(),
+  nameMarathi: text("name_marathi").notNull(),
+  icon: text("icon").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  displayOrder: integer("display_order").default(0).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

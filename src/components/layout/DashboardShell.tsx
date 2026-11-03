@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppState, RoleType } from "@/lib/store";
+import { canAccessPortal } from "@/lib/permissions";
 import { NotificationCenter } from "@/components/ui/NotificationCenter";
 import RoleSwitcher from "@/components/RoleSwitcher";
 import {
@@ -15,6 +16,7 @@ import {
   ShoppingBag,
   Landmark,
   ShieldCheck,
+  ShieldAlert,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -23,6 +25,7 @@ import {
   User,
   Settings,
   HelpCircle,
+  ArrowRight,
 } from "lucide-react";
 
 export interface NavItem {
@@ -53,6 +56,7 @@ export function DashboardShell({
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
   const currentUser = data.users.find((u) => u.role === activeRole) || data.users[0];
+  const access = canAccessPortal(activeRole, pathname);
 
   return (
     <div className="min-h-screen bg-brand-cream flex">
@@ -193,7 +197,47 @@ export function DashboardShell({
 
         {/* Page Content Body */}
         <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto animate-fadeIn">
-          {children}
+          {!access.allowed ? (
+            <div className="bg-white rounded-3xl p-8 sm:p-12 text-center max-w-2xl mx-auto shadow-xl border border-rose-200 space-y-6 my-12 animate-slideDown">
+              <div className="w-16 h-16 rounded-3xl bg-rose-100 text-rose-700 flex items-center justify-center mx-auto shadow-inner">
+                <ShieldAlert className="w-8 h-8" />
+              </div>
+              <div className="space-y-2">
+                <span className="px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-rose-800 text-xs font-black uppercase tracking-wider">
+                  Access Restricted • 403 Forbidden
+                </span>
+                <h2 className="text-2xl font-black text-slate-900">
+                  Role Authorization Required
+                </h2>
+                <p className="text-xs text-slate-600 leading-relaxed max-w-md mx-auto">
+                  {access.reason || "You do not have administrative or role-specific privileges to view this portal."}
+                </p>
+              </div>
+
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-1">
+                <p>Currently signed in as: <strong className="font-bold text-slate-900">{currentUser.fullName}</strong></p>
+                <p>Active Role: <strong className="font-mono font-bold uppercase text-brand-primary">{activeRole}</strong></p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                <Link
+                  href={access.redirectUrl || `/dashboard/${activeRole === "equipment_provider" ? "provider" : activeRole}`}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-brand-primary text-white text-xs font-bold shadow-md hover:bg-emerald-800 transition w-full sm:w-auto"
+                >
+                  <span>Go to My Authorized Dashboard</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+                <Link
+                  href="/"
+                  className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-slate-600 hover:bg-slate-100 text-xs font-bold transition w-full sm:w-auto"
+                >
+                  Return to Home
+                </Link>
+              </div>
+            </div>
+          ) : (
+            children
+          )}
         </main>
       </div>
 

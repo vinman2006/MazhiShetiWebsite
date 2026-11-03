@@ -908,6 +908,50 @@ export interface TaskHistoryRecord {
   recordedAt: string;
 }
 
+
+// =========================================================================
+// PHASE 11: PLATFORM GOVERNANCE, ANNOUNCEMENTS & CONTENT MODERATION
+// =========================================================================
+
+export interface SystemAnnouncementRecord {
+  id: string;
+  title: string;
+  titleMarathi: string;
+  message: string;
+  category: "general" | "regulatory" | "weather_alert" | "subsidy" | "maintenance";
+  priority: "low" | "normal" | "high" | "urgent";
+  targetRoles: "all" | "farmer" | "provider" | "buyer" | "banker" | "expert";
+  isActive: boolean;
+  activeUntil?: string;
+  createdByUserId: string;
+  createdAt: string;
+}
+
+export interface ContentReportRecord {
+  id: string;
+  entityType: "produce_listing" | "equipment_listing" | "user_account" | "review";
+  entityId: string;
+  reportedByUserId: string;
+  reason: string;
+  status: "pending" | "investigating" | "resolved_flagged" | "dismissed";
+  resolutionNotes?: string;
+  resolvedByUserId?: string;
+  resolvedAt?: string;
+  createdAt: string;
+}
+
+export interface PlatformCategoryRecord {
+  id: string;
+  categoryType: "crop_type" | "equipment_type" | "expense_head" | "service_type";
+  code: string;
+  name: string;
+  nameMarathi: string;
+  icon: string;
+  isActive: boolean;
+  displayOrder: number;
+  createdAt: string;
+}
+
 export interface SeedData {
   users: Array<{
     id: string;
@@ -1058,6 +1102,10 @@ export interface SeedData {
   notificationPreferences: NotificationPreferencesRecord[];
   farmingTasks: FarmingTaskRecord[];
   taskHistory: TaskHistoryRecord[];
+  // Phase 11: Governance, System Announcements & Content Moderation
+  systemAnnouncements: SystemAnnouncementRecord[];
+  contentReports: ContentReportRecord[];
+  platformCategories: PlatformCategoryRecord[];
 }
 
 export const initialSeedData: SeedData = {
@@ -4109,6 +4157,88 @@ export const initialSeedData: SeedData = {
       remarks: "Labourers started weeding on northern half of Plot B.",
       recordedAt: "2026-11-02 10:15",
     },
+  ],
+
+
+  // Phase 11: System Announcements
+  systemAnnouncements: [
+    {
+      id: "anc_01",
+      title: "PM-KUSUM Component-B Solar Agri-Pump Online Applications",
+      titleMarathi: "कुसुम-ब सौर कृषी पंप योजना: ऑनलाईन अर्ज पोर्टल सुरू",
+      message: "Maharashtra Energy Development Agency (MEDA) has opened the portal for 3HP, 5HP and 7.5HP solar pumps with 75% financial grant. All registered Vidarbha farmers can apply via Mazhi Sheti finance portal.",
+      category: "subsidy",
+      priority: "high",
+      targetRoles: "farmer",
+      isActive: true,
+      activeUntil: "2026-11-30",
+      createdByUserId: "usr_admin_01",
+      createdAt: "2026-11-01 09:00",
+    },
+    {
+      id: "anc_02",
+      title: "APMC Cotton & Soybean Daily Benchmark Price Bulletin",
+      titleMarathi: "कृषी उत्पन्न बाजार समिती: कापूस व सोयाबीन आजचे बाजारभाव",
+      message: "Cotton modal rate closed at ₹7,850/Qtl at APMC Hinganghat and ₹7,810/Qtl at APMC Wardha. Buyers are advised to deposit escrow prior to dispatch.",
+      category: "regulatory",
+      priority: "normal",
+      targetRoles: "all",
+      isActive: true,
+      activeUntil: "2026-11-10",
+      createdByUserId: "usr_admin_01",
+      createdAt: "2026-11-02 18:00",
+    },
+    {
+      id: "anc_03",
+      title: "Scheduled Maintenance: IoT LoRa Gateway Firmware Upgrade",
+      titleMarathi: "सर्व्हर व गेटवे देखभाल सूचना: ५ नोव्हेंबर मध्यरात्री",
+      message: "Gateway telemetry node firmware will be upgraded on 05 Nov between 01:00 AM and 03:00 AM IST. Sensor logging will buffer locally without data loss.",
+      category: "maintenance",
+      priority: "low",
+      targetRoles: "all",
+      isActive: true,
+      activeUntil: "2026-11-05",
+      createdByUserId: "usr_admin_01",
+      createdAt: "2026-11-02 12:00",
+    },
+  ],
+
+  // Phase 11: Content Moderation Reports
+  contentReports: [
+    {
+      id: "rep_01",
+      entityType: "produce_listing",
+      entityId: "prod_03",
+      reportedByUserId: "usr_buyer_01",
+      reason: "Inaccurate moisture specification claimed for turmeric lots. Requested quality lab re-test.",
+      status: "investigating",
+      resolutionNotes: "Assigned to Dr. Anjali Deshmukh for moisture and curcumin content verification.",
+      createdAt: "2026-11-02 14:20",
+    },
+    {
+      id: "rep_02",
+      entityType: "equipment_listing",
+      entityId: "equip_04",
+      reportedByUserId: "usr_farmer_01",
+      reason: "Harvester combine listing indicates operator included, but operator arrived 4 hours late.",
+      status: "resolved_flagged",
+      resolutionNotes: "Provider issued 2 hours compensatory credit to farmer account.",
+      resolvedByUserId: "usr_admin_01",
+      resolvedAt: "2026-11-01 18:00",
+      createdAt: "2026-10-31 16:00",
+    },
+  ],
+
+  // Phase 11: Platform Categories
+  platformCategories: [
+    { id: "pcat_01", categoryType: "crop_type", code: "cotton", name: "Cotton (कापूस)", nameMarathi: "कापूस", icon: "Sprout", isActive: true, displayOrder: 1, createdAt: "2026-06-01" },
+    { id: "pcat_02", categoryType: "crop_type", code: "soybean", name: "Soybean (सोयाबीन)", nameMarathi: "सोयाबीन", icon: "Sprout", isActive: true, displayOrder: 2, createdAt: "2026-06-01" },
+    { id: "pcat_03", categoryType: "crop_type", code: "turmeric", name: "Turmeric (हळद)", nameMarathi: "हळद", icon: "Sprout", isActive: true, displayOrder: 3, createdAt: "2026-06-01" },
+    { id: "pcat_04", categoryType: "crop_type", code: "chickpea", name: "Gram / Harbhara (हरभरा)", nameMarathi: "हरभरा", icon: "Sprout", isActive: true, displayOrder: 4, createdAt: "2026-06-01" },
+    { id: "pcat_05", categoryType: "equipment_type", code: "tractors", name: "Tractors & Tillage", nameMarathi: "ट्रॅक्टर व मशागत", icon: "Wrench", isActive: true, displayOrder: 1, createdAt: "2026-06-01" },
+    { id: "pcat_06", categoryType: "equipment_type", code: "drones", name: "Agricultural Spray Drones", nameMarathi: "फवारणी ड्रोन", icon: "Cpu", isActive: true, displayOrder: 2, createdAt: "2026-06-01" },
+    { id: "pcat_07", categoryType: "equipment_type", code: "harvesters", name: "Harvesters & Threshers", nameMarathi: "कापणी व मळणी यंत्रे", icon: "Truck", isActive: true, displayOrder: 3, createdAt: "2026-06-01" },
+    { id: "pcat_08", categoryType: "service_type", code: "soil_testing", name: "Laboratory Soil Health Testing", nameMarathi: "माती परीक्षण प्रयोगशाळा", icon: "FlaskConical", isActive: true, displayOrder: 1, createdAt: "2026-06-01" },
   ],
 
 };

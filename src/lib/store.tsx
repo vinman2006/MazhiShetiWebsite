@@ -49,6 +49,9 @@ import {
   NotificationPreferencesRecord,
   FarmingTaskRecord,
   TaskHistoryRecord,
+  SystemAnnouncementRecord,
+  ContentReportRecord,
+  PlatformCategoryRecord,
 } from "@/db/seed-data";
 
 export type RoleType =
@@ -221,9 +224,15 @@ interface AppStateContextType {
   addFarmingTask: (task: Omit<FarmingTaskRecord, "id" | "createdAt">) => FarmingTaskRecord;
   updateTaskStatus: (taskId: string, status: FarmingTaskRecord["status"], remarks?: string) => void;
   deleteFarmingTask: (taskId: string) => void;
+  // Phase 11: Governance, Moderation, Announcements & RBAC
+  toggleUserStatus: (userId: string) => void;
+  moderateListing: (listingId: string, action: "approve" | "flag" | "delist", entityType: "produce" | "equipment") => void;
+  createAnnouncement: (announcement: Omit<SystemAnnouncementRecord, "id" | "createdAt">) => SystemAnnouncementRecord;
+  resolveContentReport: (reportId: string, resolution: "resolved_flagged" | "dismissed", notes: string) => void;
+  updatePlatformCategory: (categoryId: string, isActive: boolean) => void;
 }
 
-const STORAGE_KEY = "mazhi_sheti_state_v10";
+const STORAGE_KEY = "mazhi_sheti_state_v11";
 const ONBOARDING_KEY = "mazhi_sheti_onboarding_v3";
 
 const AppStateContext = createContext<AppStateContextType | undefined>(undefined);
@@ -1692,6 +1701,96 @@ Under your NPOP conversion program, avoid chemical nitrogenous fertilizers and d
     });
   };
 
+  const toggleUserStatus = (userId: string) => {
+    const updated = (data.users || []).map((u: any) =>
+      u.id === userId
+        ? { ...u, status: u.status === "suspended" ? "active" : "suspended" }
+        : u
+    );
+    saveState({
+      ...data,
+      users: updated,
+    });
+  };
+
+  const moderateListing = (
+    listingId: string,
+    action: "approve" | "flag" | "delist",
+    entityType: "produce" | "equipment"
+  ) => {
+    if (entityType === "produce") {
+      const updated = (data.produceListings || []).map((p) =>
+        p.id === listingId
+          ? {
+              ...p,
+              availabilityStatus: action === "approve" ? ("available" as const) : ("sold_out" as const),
+            }
+          : p
+      );
+      saveState({ ...data, produceListings: updated });
+    } else {
+      const updated = (data.equipment || []).map((e) =>
+        e.id === listingId
+          ? {
+              ...e,
+              isAvailable: action === "approve",
+              status: action === "flag" ? ("maintenance" as any) : e.status,
+            }
+          : e
+      );
+      saveState({ ...data, equipment: updated });
+    }
+  };
+
+  const createAnnouncement = (
+    announcement: Omit<SystemAnnouncementRecord, "id" | "createdAt">
+  ): SystemAnnouncementRecord => {
+    const newAnc: SystemAnnouncementRecord = {
+      ...announcement,
+      id: `anc_${Date.now()}`,
+      createdAt: new Date().toISOString().replace("T", " ").substring(0, 16),
+    };
+    saveState({
+      ...data,
+      systemAnnouncements: [newAnc, ...(data.systemAnnouncements || [])],
+    });
+    return newAnc;
+  };
+
+  const resolveContentReport = (
+    reportId: string,
+    resolution: "resolved_flagged" | "dismissed",
+    notes: string
+  ) => {
+    const admin = data.users.find((u) => u.role === "admin") || data.users[0];
+    const now = new Date().toISOString().replace("T", " ").substring(0, 16);
+    const updated = (data.contentReports || []).map((r) =>
+      r.id === reportId
+        ? {
+            ...r,
+            status: resolution,
+            resolutionNotes: notes,
+            resolvedByUserId: admin.id,
+            resolvedAt: now,
+          }
+        : r
+    );
+    saveState({
+      ...data,
+      contentReports: updated,
+    });
+  };
+
+  const updatePlatformCategory = (categoryId: string, isActive: boolean) => {
+    const updated = (data.platformCategories || []).map((c) =>
+      c.id === categoryId ? { ...c, isActive } : c
+    );
+    saveState({
+      ...data,
+      platformCategories: updated,
+    });
+  };
+
   const deleteFarmingTask = (taskId: string) => {
     saveState({
       ...data,
@@ -1785,6 +1884,11 @@ Under your NPOP conversion program, avoid chemical nitrogenous fertilizers and d
         addFarmingTask,
         updateTaskStatus,
         deleteFarmingTask,
+        toggleUserStatus,
+        moderateListing,
+        createAnnouncement,
+        resolveContentReport,
+        updatePlatformCategory,
       }}
     >
       {children}
