@@ -143,3 +143,4 @@ export const FirebaseAuthProvider = ({ children }: { children: React.ReactNode }
 };
 
 export const useFirebaseAuth = () => useContext(FirebaseAuthContext);
+
